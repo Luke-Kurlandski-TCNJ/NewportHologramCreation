@@ -50,5 +50,6 @@ def main():
     image = plt.imread(imageFile)
     myList = imageToGreyList(image)
     print(len(myList), len(myList[0]))
+    plotImage(image)
     
 main()
