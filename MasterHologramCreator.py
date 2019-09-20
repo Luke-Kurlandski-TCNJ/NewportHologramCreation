@@ -42,6 +42,18 @@ def expose(pixVal):
     (arg1) pixVal : the value of the pixel
     '''
     
+    if pixVal < 25:
+        print("Ignore")
+        return
+    if pixVal < 100:
+        print("Exposing for the 25-100 range: ", pixVal * .01)
+        return
+    if pixVal < 200:
+        print("Exposing for the 100-200 range: ", pixVal * .02)
+    else:
+        ("Exposing for the 200+ range: ", pixVal * .03)
+        
+    
 #Image selection and conversion
 imageFile = "Earth.png"
 image = plt.imread(imageFile)
