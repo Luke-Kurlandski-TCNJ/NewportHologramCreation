@@ -49,12 +49,23 @@ def imageToGreyList(image):
             myList[i].append((.2989*imgList[i][j][0])+(.587*imgList[i][j][1])+(.114*imgList[i][j][2]))
     return myList
 
-def inRange(pixVal):
+def inRange(pixVal, minVal, maxVal, ignoreVals = None):
     '''
     Determines whether or not the pixel value causes exposure.
     (arg1) pixVal : the value of the pixel
+    (arg2) minVal : the minimum pixel value that will cause an exposure
+    (arg3) maxVal : the maximum pixel value that will cause an exposure
+    (arg4) ignoreVals : a listof values that should not be exposed
     (return) True/False : whether or not to expose
     '''
+    
+    if pixVal < minVal or pixVal > maxVal:
+        return False
+    if ignoreVals != None:
+        for i in ignoreVals:
+            if pixVal == i:
+                return False
+    return True
     
 def expose(pixVal):
     '''
@@ -74,10 +85,13 @@ def expose(pixVal):
         ("Exposing for the 200+ range: ", pixVal * .03)
         
     
-#Image selection and conversion
+#Image selection, conversion, exposure details
 imageFile = "Earth.png"
 image = plt.imread(imageFile)
 imgArr = imageToGreyList(image)
+minVal = -1
+maxVal = 255
+ignoreVals = [30, 50, 100]
 
 #Number of pixels in image, size of image on hologram, distance each movement
 xPixel = len(imgArr)
@@ -89,13 +103,13 @@ yDelta = yLength / yPixel
 
 #Motor control
 motor = MotorControl(port = 'COM7')
-motor.configureAxis(axis=1, velocity=1, acceleration=4, moveHome=True)
+motor.configureAxis(axis=1, velocity=1.0, acceleration=4, moveHome=True)
 
 #Read greyscale image, move as needed
 for i in range(0, xPixel):
     onRow = False #indicates the motor is already at a row
     for j in range(0, yPixel):
-        if inRange(imgArr[i][j]) == True:
+        if inRange(imgArr[i][j], minVal, maxVal, ignoreVals) == True:
             if onRow == False:
                 motor.moveAbsolute(axis=2, goToPos=j*yDelta)
             motor.moveAbsolute(axis=1, goToPos=j*yDelta)
