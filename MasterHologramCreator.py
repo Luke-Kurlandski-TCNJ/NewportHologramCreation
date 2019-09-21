@@ -10,6 +10,26 @@ Created on 9/18/19
 import numpy as np #package to support array work
 import matplotlib.pylab as plt #package to support image work
 from MotorControl import MotorControl #file with MotorControl class
+from PIL import Image #package to support image work
+
+def getGrayScaleImage(image, *args):
+    '''
+    Accepts PIL image and optional length, width
+    if there is a length, width then resize image
+    Converts image to grayscale and returns array of grayscale values
+    '''
+    if len(args) == 2:
+        image.resize(args[0], args[1])
+
+    image = image.convert('LA')
+    matrix = image.load()
+    pixelMatrix = []
+    for i in range(image.size[0]):
+        for j in range(image.size[1]):
+            pixelMatrix[i,j] = matrix[i,j][1]
+    
+    
+    return pixelMatrix
 
 def imageToGreyList(image):
     '''
