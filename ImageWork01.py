@@ -36,6 +36,7 @@ def imageToGreyList(image):
 def plotImage(image, h=8, **kwargs):
     y = image.shape[0] #pixels in the y direction
     x = image.shape[1] #pixels in the x direction
+    print(x,y)
     w = h * (x/y)
     plt.figure(figsize=(w,h)) #determines the proportional size of the image
     plt.imshow(image,interpolation='none', *kwargs)
