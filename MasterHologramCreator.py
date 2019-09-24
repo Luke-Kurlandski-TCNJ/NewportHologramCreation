@@ -84,36 +84,39 @@ def expose(pixVal):
     else:
         ("Exposing for the 200+ range: ", pixVal * .03)
         
+def run_experiment(imgArr, width=.02, height=.02):    
+    #Image selection, conversion, exposure details
+    '''
+    imageFile = "Earth.png"
+    image = plt.imread(imageFile)
+    imgArr = imageToGreyList(image)
+    minVal = -1
+    maxVal = 255
+    ignoreVals = [30, 50, 100]
+    '''
     
-#Image selection, conversion, exposure details
-imageFile = "Earth.png"
-image = plt.imread(imageFile)
-imgArr = imageToGreyList(image)
-minVal = -1
-maxVal = 255
-ignoreVals = [30, 50, 100]
-
-#Number of pixels in image, size of image on hologram, distance each movement
-xPixel = len(imgArr)
-yPixel = len(imgArr[0])
-xLength = .01
-yLength = .01
-xDelta = xLength / xPixel
-yDelta = yLength / yPixel
-
-#Motor control
-motor = MotorControl(port = 'COM7')
-motor.configureAxis(axis=1, velocity=1.0, acceleration=4, moveHome=True)
-
-#Read greyscale image, move as needed
-for i in range(0, xPixel):
-    onRow = False #indicates the motor is already at a row
-    for j in range(0, yPixel):
-        if inRange(imgArr[i][j], minVal, maxVal, ignoreVals) == True:
-            if onRow == False:
-                motor.moveAbsolute(axis=2, goToPos=j*yDelta)
-            motor.moveAbsolute(axis=1, goToPos=j*yDelta)
-            onRow = True
-            expose(imgArr[i][j])
+    #Number of pixels in image, size of image on hologram, distance each movement
+    xPix = len(imgArr) #safer than using the user's input
+    yPix = len(imgArr[0]) #safer than using the user's input
+    width = width
+    height = height
+    xDelta = 1.0 * xLength / xPixel
+    yDelta = 1.0 * yLength / yPixel
     
-
+    #Motor control
+    motor = MotorControl(port = 'COM7')
+    motor.configureAxis(axis=1, velocity=1.0, acceleration=4, moveHome=True)
+    
+    #Read greyscale image, move as needed
+    for i in range(0, xPixel):
+        onRow = False #indicates the motor is already at a row
+        for j in range(0, yPixel):
+            if inRange(imgArr[i][j], minVal, maxVal, ignoreVals) == True:
+                if onRow == False:
+                    motor.moveAbsolute(axis=2, goToPos=j*yDelta)
+                motor.moveAbsolute(axis=1, goToPos=j*yDelta)
+                onRow = True
+                expose(imgArr[i][j])
+    
+def test():
+    print('Success')
