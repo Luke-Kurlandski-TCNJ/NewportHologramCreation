@@ -84,7 +84,7 @@ def expose(pixVal):
     else:
         ("Exposing for the 200+ range: ", pixVal * .03)
         
-def run_experiment(imgArr, width=.02, height=.02):    
+def run_experiment(imgArr, exposeArr, width=.02, height=.02):    
     #Image selection, conversion, exposure details
     '''
     imageFile = "Earth.png"

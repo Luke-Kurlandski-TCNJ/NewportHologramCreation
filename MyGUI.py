@@ -11,7 +11,7 @@ import tkinter as tk #support GUI
 from tkinter import filedialog #support file selection
 import matplotlib.pylab as plt #support image work
 import numpy as np #package to support array work
-import MasterHologramCreator
+import MasterHologramCreator #package which drives motor and shutter
 
 class MyGUI:
     def __init__(self, root):
@@ -64,38 +64,25 @@ class MyGUI:
         #Set up exposure details
         tk.Label(self.frame_0x1, text='Exposure Details', font='bold').pack()
         tk.Label(self.frame_0x1, text='Enter the Exposure String (see help for details)').pack()
-        self.entry_5 = tk.Entry(self.frame_0x1, width=10)
-        self.entry_5.pack()
-        self.button_ES = tk.Button(self.frame_0x1, text='Enter String', command=self.exposure_string)
-        self.button_ES.pack(side=tk.BOTTOM)
-        
-        '''
+        self.button_ES = tk.Button(self.frame_0x1, text='Enter String', command=self.exposure_info)
+        self.button_ES.pack()
         #Runner Button
         self.button_run = tk.Button(self.root, text='Run Experiment', font=('Helvetia', '20'), command=self.run)
         self.button_run.grid(column=0, pady=20, row=14)
+        
+    def exposure_info(self):
         '''
-    
-    def exposure_string(self):
-        '''
-        Logs the exposure ranges. Produces an area for user to enter specific details
-        FIXME: should check to make sure the user entry is correct format
+        Opens up separate windows for the user to enter information
         '''
         
-        entry = self.entry_5.get()
-        exposList = entry.rsplit(',')
-        self.frame_0x2.grid(column=1, row=1)
-        self.frame_0x2l = tk.Frame(self.frame_0x2)
-        self.frame_0x2l.pack(side=tk.LEFT)
-        self.frame_0x2r = tk.Frame(self.frame_0x2)
-        self.frame_0x2r.pack(side=tk.RIGHT)
-        
-        self.thisDic = {'temp': tk.Entry()}
-        for s in exposList:
-            tk.Label(self.frame_0x2l, text=s).pack()
-            temp = tk.Entry(self.frame_0x2r, width=10)
-            temp.pack()
-            self.thisDic[s] = temp
-        self.thisDic.pop('temp')
+        self.entry_window = tk.Toplevel(width=400, height=400)
+        self.exposure_details = tk.Text(self.entry_window, width=30, height=20)
+        tk.Label(self.entry_window,text='EXPOSE DETAILS').pack()
+        self.exposure_details.pack()
+        self.ignore_details = tk.Text(self.entry_window, width=30, height=20)
+        tk.Label(self.entry_window,text='IGNORE DETAILS').pack()
+        self.ignore_details.pack()
+        tk.Label(self.entry_window,text='DO NOT CLOSE THIS WINDOW UNTIL RUNNING EXPERIMENT').pack()
         
     def my_destroy(self): 
         '''
@@ -135,28 +122,51 @@ class MyGUI:
     
     def run(self):
         '''
-        Command off button:
-        FIXME: should call to another file to begin running experiment
-        FIXME: should create a popup window of the user's exposure choices
+        Runner button. Generates the information about how long to expose
+            various pixel values. Calls another file.
         '''
         
+        #Generate the exposure array
+        lines=self.exposure_details.get('1.0','end-1c').splitlines()
+        exposeArr = []
+        for i in range(0,256):
+            exposeArr.append(0)
+        #Parse through the user's entry
+        for s in lines:
+            c=s.find(',')
+            b=s.find(']')
+            start=int(s[1:c])
+            end=int(s[c+1:b])
+            xLoc=s.find('x')
+            if xLoc==-1:
+                temp=s[b+2:len(s)]
+                print(temp)
+                expose_dur=float(s[b+2:len(s)])
+                for i in range(start,end):
+                    exposeArr[i] = expose_dur
+            else:
+                mult_factor=float(s[b+2:xLoc])
+                for i in range(start,end):
+                    exposeArr[i] = mult_factor*i
+        #Override with 0s, for the ignore array
+        lines2=self.ignore_details.get('1.0','end-1c').splitlines()
+        for s in lines2:
+            c=s.find(',')
+            b=s.find(']')
+            start=int(s[1:c])
+            end=int(s[c+1:b])
+            for i in range(start,end):
+                exposeArr[i] = 0
+        print(exposeArr)
+        
+        #Call MasterHologramCreator runner file
+        '''
         width = self.entry_1.get()
         height = self.entry_2.get()
-        MasterHologramCreator.test()
+        MasterHologramCreator.run_experiment(imgArr, exposeArr,width,height)
+        '''
 
 #MainLoop
 root = tk.Tk()
 app = MyGUI(root)
 root.mainloop()
-
-
-'''
-        #Set up canvas
-        tk.Label(self.root, text='Original Image').grid(column=1, row=0)
-        self.canvas_1 = tk.Canvas(self.root, width=400, height=400)
-        self.canvas_1.grid(column=1, row=1, columnspan=10, rowspan=10, padx=100)
-        
-        tk.Label(self.root, text='Altered Image:').grid(column=1, row=12, pady=20)
-        self.canvas_2 = tk.Canvas(self.root, width=400, height=400)
-        self.canvas_2.grid(column = 1, row=13, columnspan=10, rowspan=10, padx=100)
-'''
