@@ -35,18 +35,20 @@ class MyGUI:
         self.frame_1x0.grid(row=1, column=0, pady=10)
         self.frame_2x0 = tk.Frame(self.root) #image modification
         self.frame_2x0.grid(row=2, column=0, pady=10)
-        self.frame_0x1 = tk.Frame(self.root) #exposure string
-        self.frame_0x1.grid(column=1, row=0, pady=10)
-        self.frame_0x2 = tk.Frame(self.root) #exposure values
-        #self.frame_0x2.grid(column=1, row=1, pady=10)
+        self.frame_3x0 = tk.Frame(self.root) #exposure details
+        self.frame_3x0.grid(row=3, column=0, pady=10)
+        self.frame_0x1 = tk.Frame(self.root) #image
+        self.frame_0x1.grid(row=0, column=1, padx=10, pady=10, rowspan=400, columnspan=400, sticky=tk.N)
+        self.frame_0x2 = tk.Frame(self.root) #image as array
+        self.frame_0x2.grid(row=1, column=1, padx=10, pady=10, rowspan=400, columnspan=400, sticky=tk.N)
         #Set up labels and entry for film size
         tk.Label(self.frame_0x0, text='Film Selection', font="bold").pack()
         tk.Label(self.frame_0x0, text='Enter width of image on film (m)').pack()
-        self.entry_1 = tk.Entry(self.frame_0x0, width = 10)
-        self.entry_1.pack()
+        self.entry_width = tk.Entry(self.frame_0x0, width = 10)
+        self.entry_width.pack()
         tk.Label(self.frame_0x0, text='Enter height of image on film (m)').pack()
-        self.entry_2 = tk.Entry(self.frame_0x0, width = 10)
-        self.entry_2.pack()
+        self.entry_height = tk.Entry(self.frame_0x0, width = 10)
+        self.entry_height.pack()
         #Set up labels and entry for image selection
         tk.Label(self.frame_1x0, text='Image Selection', font="bold").pack()
         self.button_chsIMG = tk.Button(self.frame_1x0, text='Select an Image', command=self.image_select)
@@ -54,17 +56,16 @@ class MyGUI:
         #Set up labels and entry for image modification
         tk.Label(self.frame_2x0, text='Image Modification', font='bold').pack()
         tk.Label(self.frame_2x0, text='Enter desired gratings in horizontal direction').pack()
-        self.entry_3 = tk.Entry(self.frame_2x0, width = 10)
-        self.entry_3.pack()
+        self.entry_Xpix = tk.Entry(self.frame_2x0, width = 10)
+        self.entry_Xpix.pack()
         tk.Label(self.frame_2x0, text='Enter desired gratings in vertical direction').pack()
-        self.entry_4 = tk.Entry(self.frame_2x0, width = 11)
-        self.entry_4.pack()
+        self.entry_Ypix = tk.Entry(self.frame_2x0, width = 11)
+        self.entry_Ypix.pack()
         self.button_modIMG = tk.Button(self.frame_2x0, text='Modify Image', command=self.mod_image)
         self.button_modIMG.pack()
         #Set up exposure details
-        tk.Label(self.frame_0x1, text='Exposure Details', font='bold').pack()
-        tk.Label(self.frame_0x1, text='Enter the Exposure String (see help for details)').pack()
-        self.button_ES = tk.Button(self.frame_0x1, text='Enter String', command=self.exposure_info)
+        tk.Label(self.frame_3x0, text='Exposure Details', font='bold').pack()
+        self.button_ES = tk.Button(self.frame_3x0, text='Enter Details', command=self.exposure_info)
         self.button_ES.pack()
         #Runner Button
         self.button_run = tk.Button(self.root, text='Run Experiment', font=('Helvetia', '20'), command=self.run)
@@ -94,31 +95,68 @@ class MyGUI:
     def image_select(self):
         '''
         Command off button. Allows user to select an image. Prints image to label.
-        FIXME: should auto downsize the image to 400x400
-        FIXME: should basically fit the image into the 400x400 space
-        FIXME: possibly requires reworking entire logic, possibly using canvas
+        FIXME: should auto downsize the image to 400x400 to fit the image into 
+            the 400x400 space. Should not perform the downsize action yet.
         '''
         
         self.img = tk.PhotoImage(file=filedialog.askopenfilename())
-        self.label_1 = tk.Label(self.root, text='Original Image:')
-        self.label_1.grid(row=0, column=1)
-        self.label_img = tk.Label(self.root, image=self.img).grid(row=1, column=1, padx=100, rowspan=400, columnspan=400)
+        #FIXME: Auto downsize the image to 400x400
+        self.label_img_label = tk.Label(self.frame_0x1, text='Original Image:')
+        self.label_img_label.pack()
+        self.label_img = tk.Label(self.frame_0x1, image=self.img)
+        self.label_img.pack()
         
     def mod_image(self):
         '''
         Command off button. 
         FIXME: should apply the given modifications to self.img 
             and display the greyscale result
-        FIXME: should also create a the 2-D array of greyscale values
+        FIXME: should also create and display the 2-D array of greyscale values
+        FIXME: should generate a run time estimation
         '''
         
-        xPix = self.entry_3.get()
-        yPix = self.entry_4.get()
+        xPix = int(self.entry_Xpix.get())
+        yPix = int(self.entry_Ypix.get())
+        #FIXME: modify self.img
+        #Update Image
+        self.label_img_label.configure(text='Modified Image')
+        self.label_img.configure(image=self.img) #FIXME replace with new image
+        #Configure new window, display, and scrollbars
+        self.array_window = tk.Toplevel(self.root)
+        tk.Label(self.array_window, text='Your Image as an Array (white=0, black=255)').pack(side=tk.TOP)
+        self.scrollbar_y = tk.Scrollbar(self.array_window)
+        self.scrollbar_y.pack(side=tk.RIGHT, fill=tk.Y)
+        self.scrollbar_x = tk.Scrollbar(self.array_window, orient=tk.HORIZONTAL)
+        self.scrollbar_x.pack(side=tk.BOTTOM, fill=tk.X)
+        self.text_arr = tk.Text(self.array_window, yscrollcommand=self.scrollbar_y.set, 
+                                xscrollcommand=self.scrollbar_x.set, 
+                                width=xPix*4, height=yPix, wrap=tk.NONE)
+        self.text_arr.pack()
+        self.scrollbar_y.configure(command=self.text_arr.yview)
+        self.scrollbar_x.configure(command=self.text_arr.xview)
         
-        self.label_1.configure(text='Modified Image')
-        self.label_img.configure(image=self.img) #FIXME
-        #self.label_1.update_idletasks()
+        #FIXME: generate the array...replace testArray with real array
+        testArray = []
+        for i in range(0,yPix):
+            testArr = []
+            testArray.append(testArr)
+            for j in range(0, xPix):
+                testArr.append(i)
+                k = testArray[i][j]
+                s='   '
+                if k>9:
+                    s='  '
+                if k>99:
+                    s=' '
+                self.text_arr.insert(tk.END, str(k)+s)
+                
+                
+            
+        '''
+        Possibly needed updating code
+        #self.label_img_label.update_idletasks()
         #self.label_img.update_idletasks()
+        '''
     
     def run(self):
         '''
@@ -161,8 +199,8 @@ class MyGUI:
         
         #Call MasterHologramCreator runner file
         '''
-        width = self.entry_1.get()
-        height = self.entry_2.get()
+        width = self.entry_width.get()
+        height = self.entry_height.get()
         MasterHologramCreator.run_experiment(imgArr, exposeArr,width,height)
         '''
 
