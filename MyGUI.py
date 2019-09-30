@@ -6,12 +6,18 @@ Created on 9/22/19
 
 @author: Luke Kurlandski
 """
+'''
+
+Goals:
+    reduce name pollution, remove self prefix if possible, clean up name convention
+
+'''
+
 
 import tkinter as tk #support GUI
 from tkinter import filedialog #support file selection
-import matplotlib.pylab as plt #support image work
-import numpy as np #package to support array work
 import MasterHologramCreator #package which drives motor and shutter
+from PIL import ImageTk #package to support Pil and Tk image compatability
 
 class MyGUI:
     def __init__(self, root):
@@ -71,6 +77,68 @@ class MyGUI:
         self.button_run = tk.Button(self.root, text='Run Experiment', font=('Helvetia', '20'), command=self.run)
         self.button_run.grid(column=0, pady=20, row=14)
         
+    def my_destroy(self): 
+        '''
+        Command off menu. Destroys current window, and breaks mainloop.
+        '''
+        
+        self.root.destroy()   
+    
+    def image_select(self):
+        '''
+        Command off button. Allows user to select an image. Displays image.
+            Auto downsizes to 400x400
+        '''
+        self.file = filedialog.askopenfilename()
+        self.img_pil = MasterHologramCreator.convert_grey_downsize(self.file, 400, 400)
+        self.img_tk = ImageTk.PhotoImage(self.img_pil)
+        self.label_img_label = tk.Label(self.frame_0x1, text='Original Image:')
+        self.label_img_label.pack()
+        self.label_img = tk.Label(self.frame_0x1, image=self.img_tk)
+        self.label_img.pack()
+        
+    def mod_image(self):
+        '''
+        Command off button. Modifies the image into greyscale. Downsizes. 
+            Displays image.
+        '''
+        
+        #Acquire width and height of image
+        try:
+            xPix = int(self.entry_Xpix.get())
+            yPix = int(self.entry_Ypix.get())
+        except:
+            xPix = self.img_pil.width
+            yPix = self.img_pil.height
+        #Modify self.img_tk and update on screen
+        self.img_pil = MasterHologramCreator.convert_grey_downsize(self.file, xPix, yPix, True)
+        self.img_tk = ImageTk.PhotoImage(self.img_pil)
+        self.label_img_label.configure(text='Modified Image')
+        self.label_img.configure(image=self.img_tk)
+        #Configure new window, display, and scrollbars
+        self.array_window = tk.Toplevel(self.root)
+        tk.Label(self.array_window, text='Your Image as an Array (white=0, black=255)').pack(side=tk.TOP)
+        self.scrollbar_y = tk.Scrollbar(self.array_window)
+        self.scrollbar_y.pack(side=tk.RIGHT, fill=tk.Y)
+        self.scrollbar_x = tk.Scrollbar(self.array_window, orient=tk.HORIZONTAL)
+        self.scrollbar_x.pack(side=tk.BOTTOM, fill=tk.X)
+        self.text_arr = tk.Text(self.array_window, yscrollcommand=self.scrollbar_y.set, xscrollcommand=self.scrollbar_x.set, width=xPix*4, height=yPix, wrap=tk.NONE)
+        self.text_arr.pack()
+        self.scrollbar_y.configure(command=self.text_arr.yview)
+        self.scrollbar_x.configure(command=self.text_arr.xview)
+        #Print the array to screen
+        self.img_as_array = MasterHologramCreator.get_image_array(self.img_pil)
+        for i in self.img_as_array:
+            for j in i:
+                spaces = '   '
+                if j > 9:
+                    spaces = '  '
+                if j > 99:
+                    spaces = ' '
+                self.text_arr.insert(tk.END, str(j)+spaces)
+            self.text_arr.insert(tk.END,'\n')
+        self.array_window.configure(width=100, height=100)
+        
     def exposure_info(self):
         '''
         Opens up separate windows for the user to enter information
@@ -84,84 +152,11 @@ class MyGUI:
         tk.Label(self.entry_window,text='IGNORE DETAILS').pack()
         self.ignore_details.pack()
         tk.Label(self.entry_window,text='DO NOT CLOSE THIS WINDOW UNTIL RUNNING EXPERIMENT').pack()
-        
-    def my_destroy(self): 
-        '''
-        Command off menu. Destroys current window, and breaks mainloop.
-        '''
-        
-        self.root.destroy()  
-        
-    def image_select(self):
-        '''
-        Command off button. Allows user to select an image. Prints image to label.
-        FIXME: should auto downsize the image to 400x400 to fit the image into 
-            the 400x400 space. Should not perform the downsize action yet.
-        '''
-        
-        self.img = tk.PhotoImage(file=filedialog.askopenfilename())
-        #FIXME: Auto downsize the image to 400x400
-        self.label_img_label = tk.Label(self.frame_0x1, text='Original Image:')
-        self.label_img_label.pack()
-        self.label_img = tk.Label(self.frame_0x1, image=self.img)
-        self.label_img.pack()
-        
-    def mod_image(self):
-        '''
-        Command off button. 
-        FIXME: should apply the given modifications to self.img 
-            and display the greyscale result
-        FIXME: should also create and display the 2-D array of greyscale values
-        FIXME: should generate a run time estimation
-        '''
-        
-        xPix = int(self.entry_Xpix.get())
-        yPix = int(self.entry_Ypix.get())
-        #FIXME: modify self.img
-        #Update Image
-        self.label_img_label.configure(text='Modified Image')
-        self.label_img.configure(image=self.img) #FIXME replace with new image
-        #Configure new window, display, and scrollbars
-        self.array_window = tk.Toplevel(self.root)
-        tk.Label(self.array_window, text='Your Image as an Array (white=0, black=255)').pack(side=tk.TOP)
-        self.scrollbar_y = tk.Scrollbar(self.array_window)
-        self.scrollbar_y.pack(side=tk.RIGHT, fill=tk.Y)
-        self.scrollbar_x = tk.Scrollbar(self.array_window, orient=tk.HORIZONTAL)
-        self.scrollbar_x.pack(side=tk.BOTTOM, fill=tk.X)
-        self.text_arr = tk.Text(self.array_window, yscrollcommand=self.scrollbar_y.set, 
-                                xscrollcommand=self.scrollbar_x.set, 
-                                width=xPix*4, height=yPix, wrap=tk.NONE)
-        self.text_arr.pack()
-        self.scrollbar_y.configure(command=self.text_arr.yview)
-        self.scrollbar_x.configure(command=self.text_arr.xview)
-        
-        #FIXME: generate the array...replace testArray with real array
-        testArray = []
-        for i in range(0,yPix):
-            testArr = []
-            testArray.append(testArr)
-            for j in range(0, xPix):
-                testArr.append(i)
-                k = testArray[i][j]
-                s='   '
-                if k>9:
-                    s='  '
-                if k>99:
-                    s=' '
-                self.text_arr.insert(tk.END, str(k)+s)
-                
-                
-            
-        '''
-        Possibly needed updating code
-        #self.label_img_label.update_idletasks()
-        #self.label_img.update_idletasks()
-        '''
     
     def run(self):
         '''
         Runner button. Generates the information about how long to expose
-            various pixel values. Calls another file.
+            various pixel values. Calls run_experiment method
         '''
         
         #Generate the exposure array
@@ -169,7 +164,7 @@ class MyGUI:
         exposeArr = []
         for i in range(0,256):
             exposeArr.append(0)
-        #Parse through the user's entry
+        #Parse through the user's entry based upon comma and bracket location
         for s in lines:
             c=s.find(',')
             b=s.find(']')
@@ -188,6 +183,7 @@ class MyGUI:
                     exposeArr[i] = mult_factor*i
         #Override with 0s, for the ignore array
         lines2=self.ignore_details.get('1.0','end-1c').splitlines()
+        #Parse through the user's entry based upon comma and bracket location
         for s in lines2:
             c=s.find(',')
             b=s.find(']')
@@ -197,11 +193,11 @@ class MyGUI:
                 exposeArr[i] = 0
         print(exposeArr)
         
-        #Call MasterHologramCreator runner file
         '''
+        #Call MasterHologramCreator runner file
         width = self.entry_width.get()
         height = self.entry_height.get()
-        MasterHologramCreator.run_experiment(imgArr, exposeArr,width,height)
+        MasterHologramCreator.run_experiment(self.img_as_array, exposeArr, width, height)
         '''
 
 #MainLoop
