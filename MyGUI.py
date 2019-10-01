@@ -40,8 +40,10 @@ class MyGUI:
         self.frame_1x0.grid(row=1, column=0, pady=10)
         self.frame_2x0 = tk.Frame(self.root) #image modification
         self.frame_2x0.grid(row=2, column=0, pady=10)
-        self.frame_3x0 = tk.Frame(self.root) #exposure details, time estimation
+        self.frame_3x0 = tk.Frame(self.root) #serial port selection
         self.frame_3x0.grid(row=3, column=0, pady=10)
+        self.frame_4x0 = tk.Frame(self.root) #exposure details, time estimation
+        self.frame_4x0.grid(row=4, column=0, pady=10)
         #Set up labels and entry for film size
         tk.Label(self.frame_0x0, text='Film Selection', font="bold").pack()
         tk.Label(self.frame_0x0, text='Enter width of image on film (m)').pack()
@@ -68,11 +70,21 @@ class MyGUI:
         self.entry_Ypix.insert(1,'100')
         self.button_modIMG = tk.Button(self.frame_2x0, text='Modify Image', command=self.mod_image)
         self.button_modIMG.pack()
+        #Set up serial ports 
+        tk.Label(self.frame_3x0, text='Serial Ports', font='bold').pack()
+        tk.Label(self.frame_3x0, text='Enter the serial port for the motor').pack()
+        self.entry_port_mot = tk.Entry(self.frame_3x0, width = 10)
+        self.entry_port_mot.pack()
+        self.entry_port_mot.insert(1, 'COMx')
+        tk.Label(self.frame_3x0, text='Enter the serial port for the shutter').pack()
+        self.entry_port_shut = tk.Entry(self.frame_3x0, width = 10)
+        self.entry_port_shut.pack()
+        self.entry_port_shut.insert(1, 'COMx')
         #Set up exposure details, time estimation
-        tk.Label(self.frame_3x0, text='Exposure Details,\nTime Estimation', font='bold').pack()
-        self.button_details = tk.Button(self.frame_3x0, text='Enter Details', command=self.exposure_info)
+        tk.Label(self.frame_4x0, text='Exposure Details,\nTime Estimation', font='bold').pack()
+        self.button_details = tk.Button(self.frame_4x0, text='Enter Details', command=self.exposure_info)
         self.button_details.pack()
-        self.button_time = tk.Button(self.frame_3x0, text='Generate Time Estimation', command=self.run_time)
+        self.button_time = tk.Button(self.frame_4x0, text='Generate Time Estimation\nRun Experiment', command=self.run_time)
         self.button_time.pack()
     
     def image_select(self):
@@ -224,7 +236,9 @@ class MyGUI:
         #Call MasterHologramCreator runner file
         width = self.entry_width.get()
         height = self.entry_height.get()
-        MasterHologramCreator.run_experiment(self.img_as_array, self.exposeArr, width, height)
+        port_mot = self.entry_port_mot.get()
+        port_shut = self.entry_port_shut.get()
+        MasterHologramCreator.run_experiment(self.img_as_array, self.exposeArr, port_mot, port_shut, width, height)
         
 
 #MainLoop
