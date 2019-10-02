@@ -179,8 +179,6 @@ class MyGUI:
             end=int(s[c+1:b])
             xLoc=s.find('x')
             if xLoc==-1:
-                temp=s[b+2:len(s)]
-                print(temp)
                 expose_dur=float(s[b+2:len(s)])
                 for i in range(start,end):
                     self.exposeArr[i] = expose_dur
@@ -234,10 +232,11 @@ class MyGUI:
         '''
         
         #Call MasterHologramCreator runner file
-        width = self.entry_width.get()
-        height = self.entry_height.get()
+        width = float(self.entry_width.get())
+        height = float(self.entry_height.get())
         port_mot = self.entry_port_mot.get()
         port_shut = self.entry_port_shut.get()
+        self.time_window.destroy()
         MasterHologramCreator.run_experiment(self.img_as_array, self.exposeArr, port_mot, port_shut, width, height)
         
 

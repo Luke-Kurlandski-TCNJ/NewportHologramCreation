@@ -88,7 +88,11 @@ class MotorControl:
         #Compute velocity
         self.writeCommand(strAxis + 'VU?')
         strMaxVelocity = self.ser.read(6).decode()  #5 sig figures
-        maxVelocity = float(strMaxVelocity)
+        try:
+            maxVelocity = float(strMaxVelocity)
+        except:
+            print('Failure acquiring maximum velocity')
+            return
         if velocity <= maxVelocity:
             self.writeCommand(strAxis + 'VA' + strVelocity)
         else:
