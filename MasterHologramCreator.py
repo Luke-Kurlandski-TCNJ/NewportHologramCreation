@@ -62,28 +62,27 @@ def run_experiment(img_as_arr, expose_arr, port_motor, port_shutter, width=.02, 
     motor = MotorControl(port = port_motor)
     motor.configureAxis(axis=1, velocity=1.0, acceleration=4, moveHome=True)
     motor.configureAxis(axis=2, velocity=1.0, acceleration=4, moveHome=True)
-    close_port(motor)
-    close_port(shutter)
     #Read greyscale image, move as needed
-    for i in range(0, xPix):
+    for i in range(0, yPix):
         onRow = False #indicates the motor is already at a row
-        for j in range(0, yPix):
-            if expose_arr[img_as_arr[i][j]] != 0:
+        for j in range(0, xPix):
+            if expose_arr[img_as_arr[j][i]] != 0:
                 if onRow == False:
-                    motor.moveAbsolute(axis=2, goToPos=j*yDelta)
-                motor.moveAbsolute(axis=1, goToPos=j*xDelta)
+                    motor.moveAbsolute(axis=2, goToPos=i*yDelta*1000)
+                motor.moveAbsolute(axis=1, goToPos=j*xDelta*1000)
                 onRow = True
-                shutter.toggle_shutter(expose_arr[img_as_arr[i][j]])
+                shutter.toggle_shutter(expose_arr[img_as_arr[j][i]])
                 
-def close_port(obj):
-    obj.ser.close()
+def close_port(*args):
+    for i in args:
+        args[i].ser.close()
     
 def test():
     img_as_arr = []
-    for i in range(0,64):
+    for i in range(0,16):
         temp = []
         img_as_arr.append(temp)
-        for j in range(0,64):
+        for j in range(0,16):
             temp.append(j%2)
     print(len(img_as_arr), len(img_as_arr[0]))
     
@@ -95,11 +94,15 @@ def test():
 
 def test2():
     motor = MotorControl(port = 'COM11')
+    #motor.configureAxis(axis=1, velocity=1.0, acceleration=4, moveHome=True)
+    #motor.moveAbsolute(1, 1)
+    
     motor.configureAxis(axis=1, velocity=1.0, acceleration=4, moveHome=True)
-    motor.moveAbsolute(1, 1)
+    motor.moveAbsolute(1, 2)
     motor.configureAxis(axis=2, velocity=1.0, acceleration=4, moveHome=True)
+    motor.moveAbsolute(2, 2)
     #time.sleep(10)
     #motor.configureAxis(axis=2, velocity=1.0, acceleration=4, moveHome=True)
     
-test2()        
+#test()        
     

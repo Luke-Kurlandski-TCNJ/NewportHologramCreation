@@ -152,11 +152,11 @@ class MyGUI:
         tk.Label(self.entry_window,text='EXPOSE DETAILS').pack()
         self.exposure_details = tk.Text(self.entry_window, width=30, height=20)
         self.exposure_details.pack()
-        self.exposure_details.insert(tk.END, '[0,50]:1\n[50,100]:2\n[100,150]:3\n[150,200]:4\n[200,255]:5')
+        self.exposure_details.insert(tk.END, '[0,50]:1\n[50,100]:1.5\n[100,150]:2\n[150,200]:2.5\n[200,255]:3')
         tk.Label(self.entry_window,text='IGNORE DETAILS').pack()
         self.ignore_details = tk.Text(self.entry_window, width=30, height=20)
         self.ignore_details.pack()
-        self.ignore_details.insert(tk.END, '[10,20]\n[210,220]')
+        self.ignore_details.insert(tk.END, '[0,0]\n[255,255]')
         tk.Label(self.entry_window,text='DO NOT CLOSE THIS WINDOW UNTIL RUNNING EXPERIMENT').pack()
     
     def run_time(self):
@@ -198,22 +198,22 @@ class MyGUI:
                 self.exposeArr[i] = 0
         #Generate and display the run time estimation
         expose_time = 0
-        height = len(self.img_as_array)
-        width = len(self.img_as_array[0])
+        width = len(self.img_as_array)
+        height = len(self.img_as_array[0])
         for i in range (height):
             visited_row = False
             farthest_x = 0
             for j in range (width):
-                add = self.exposeArr[self.img_as_array[i][j]]
+                add = self.exposeArr[self.img_as_array[j][i]]
                 if add != 0:
                     visited_row = True
                     farthest_x = j
-                    expose_time = expose_time + self.exposeArr[j]
+                    expose_time = expose_time + add
             if visited_row == True:
                 expose_time = expose_time + ((farthest_x / width) / .001)
         self.time_window = tk.Toplevel(self.root)
         tk.Label(self.time_window, text = 'Rough Time Estimation: \n' 
-                 + str(expose_time)).pack()
+                 + str(expose_time/3600) + ' hours').pack()
         #Set up runner Button
         self.button_run = tk.Button(self.time_window, text='Run Experiment', command=self.run)
         self.button_run.pack()

@@ -11,6 +11,7 @@ Last Update on 9/16/19
 
 import serial #Library of the Serial-Port
 #import serial.tools.list_ports #Library for listing the COM ports
+import time
 
 class MotorControl:
     '''
@@ -68,8 +69,15 @@ class MotorControl:
         '''
         
         strAxis = str(axis)
-        self.writeCommand(strAxis + 'WS' + str(milliseconds))
-        
+        #self.writeCommand(strAxis + 'WS' + str(milliseconds))
+        while True:
+            self.writeCommand(strAxis + 'MD?')
+            bit = int(self.ser.read(4).decode())
+            if bit == 1:
+                return
+            else:
+                time.sleep(.5)
+                
     def configureAxis(self, axis, velocity, acceleration, moveHome=True):
         '''
         Initial configuration of device.
