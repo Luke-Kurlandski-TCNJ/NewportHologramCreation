@@ -17,14 +17,12 @@ class MotorControl:
     '''
     ser: serial port (serial object)
     '''
-    
-    ser = serial.Serial()
-    
+
     def __init__(self, port, baudrate=19200, timeout=.1, stopbits=1, bytesize=8):
         '''
         Construct an object and configure the serial port.
         '''
-        
+        self.ser = serial.Serial()
         self.ser.port = port
         self.ser.baudrate = baudrate
         self.ser.timeout = timeout
@@ -38,16 +36,16 @@ class MotorControl:
         (arg2) command: the command to send to the motor (string)
         (arg3) closeAfter: close port after command, if true (boolean)
         '''
-        
-        if command.find('\r') == -1:
-            command = command + '\r'
+        cmd = command
+        if cmd.find('\r') == -1:
+            cmd = cmd + '\r'
         if self.ser.is_open == False:
             self.ser.open()
-        self.ser.write(command.encode())
+        self.ser.write(cmd.encode())
         if closeAfter == True:
             self.ser.close()   
             
-    def moveAbsolute(self, axis, goToPos, delay=100):
+    def moveAbsolute(self, axis, goToPos, delay=0):
         '''
         Move the stage to an absolute location. Wait until motion is complete.
         (arg1) self
@@ -61,7 +59,7 @@ class MotorControl:
         self.writeCommand(strAxis + 'PA' + strGoToPos)
         self.waitMotionDone(axis, delay)
     
-    def waitMotionDone(self, axis, milliseconds=100):
+    def waitMotionDone(self, axis, milliseconds=0):
         '''
         Delays until the device is finished moving plus .1 seconds. 
         (arg1) self 
@@ -72,13 +70,13 @@ class MotorControl:
         #self.writeCommand(strAxis + 'WS' + str(milliseconds))
         while True:
             self.writeCommand(strAxis + 'MD?')
-            bit = int(self.ser.read(4).decode())
-            if bit == 1:
+            bit = str(self.ser.read(4).decode())
+            if bit.find('1') != -1:
                 return
             else:
                 time.sleep(.5)
                 
-    def configureAxis(self, axis, velocity, acceleration, moveHome=True):
+    def configureAxis(self, axis, velocity=1, acceleration=4, moveHome=True):
         '''
         Initial configuration of device.
         (arg1) self
@@ -132,3 +130,12 @@ class MotorControl:
         
         self.ser.close()
         print("Serial Port Closed:", self.ser.port)
+        
+        
+def test():
+    m = MotorControl('COM11')
+    m.configureAxis(1)
+    m.configureAxis(2)
+    #m.moveAbsolute(1, -1)
+    #m.moveAbsolute(2,-1)
+    #m.__del__()

@@ -21,6 +21,7 @@ class ShutterControl:
         #flow control = 1?
         '''
         
+        
         self.ser.port = port
         self.ser.baudrate = baudrate
         self.ser.timeout = timeout
@@ -35,13 +36,14 @@ class ShutterControl:
         (arg3) closeAfter: close port after command, if true (boolean)
         '''
         
-        if command.find('\r') == -1:
-            command = command + '\r'
+        cmd = command
+        if cmd.find('\r') == -1:
+            cmd = cmd + '\r'
         if self.ser.is_open == False:
             self.ser.open()
-        self.ser.write(command.encode())
+        self.ser.write(cmd.encode())
         if closeAfter == True:
-            self.ser.close() 
+            self.ser.close()
             
     def toggle_shutter(self, pause):
         '''
@@ -62,3 +64,11 @@ class ShutterControl:
         
         self.ser.close()
         print("Serial Port Closed:", self.ser.port)
+        
+def test():
+    s = ShutterControl('COM10')
+    s.toggle_shutter(2)
+    s.toggle_shutter(1)
+    s.ser.close()
+
+test()

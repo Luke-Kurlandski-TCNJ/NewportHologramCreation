@@ -44,6 +44,8 @@ class MyGUI:
         self.frame_3x0.grid(row=3, column=0, pady=10)
         self.frame_4x0 = tk.Frame(self.root) #exposure details, time estimation
         self.frame_4x0.grid(row=4, column=0, pady=10)
+        self.frame_5x0 = tk.Frame(self.root) #run button
+        self.frame_5x0.grid(row=5, column=0, pady=10)
         #Set up labels and entry for film size
         tk.Label(self.frame_0x0, text='Film Selection', font="bold").pack()
         tk.Label(self.frame_0x0, text='Enter width of image on film (m)').pack()
@@ -86,6 +88,11 @@ class MyGUI:
         self.button_details.pack()
         self.button_time = tk.Button(self.frame_4x0, text='Generate Time Estimation\nRun Experiment', command=self.run_time)
         self.button_time.pack()
+        #Set up runner/quitter Button
+        self.button_run = tk.Button(self.frame_5x0, text='Run Experiment', command=self.run)
+        self.button_run.pack()
+        self.button_quit = tk.Button(self.frame_5x0, text='Quit All', command=self.root.destroy)
+        self.button_quit.pack()
     
     def image_select(self):
         '''
@@ -214,9 +221,7 @@ class MyGUI:
         self.time_window = tk.Toplevel(self.root)
         tk.Label(self.time_window, text = 'Rough Time Estimation: \n' 
                  + str(expose_time/3600) + ' hours').pack()
-        #Set up runner Button
-        self.button_run = tk.Button(self.time_window, text='Run Experiment', command=self.run)
-        self.button_run.pack()
+        #Set up abort button
         self.button_abort = tk.Button(self.time_window, text='Abort Experiment', command=self.dont_run)
         self.button_abort.pack()
     
@@ -224,7 +229,8 @@ class MyGUI:
         self.time_window.destroy()
         self.entry_window.destroy()
         self.array_window.destroy()
-        #self.my_destroy(self.time_window)
+        self.image_mod_window.destroy()
+        self.image_orig_window.destroy()
     
     def run(self):
         '''
@@ -236,7 +242,6 @@ class MyGUI:
         height = float(self.entry_height.get())
         port_mot = self.entry_port_mot.get()
         port_shut = self.entry_port_shut.get()
-        self.time_window.destroy()
         MasterHologramCreator.run_experiment(self.img_as_array, self.exposeArr, port_mot, port_shut, width, height)
         
 
