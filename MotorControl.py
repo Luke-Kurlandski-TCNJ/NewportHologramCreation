@@ -70,7 +70,11 @@ class MotorControl:
         #self.writeCommand(strAxis + 'WS' + str(milliseconds))
         while True:
             self.writeCommand(strAxis + 'MD?')
-            bit = str(self.ser.read(4).decode())
+            try:
+                byte = self.ser.read(4)
+                bit = str(byte.decode())
+            except:
+                print('Cannot convert the motor\'s output: ', byte)
             if bit.find('1') != -1:
                 return
             else:
@@ -91,32 +95,17 @@ class MotorControl:
         strVelocity = str(velocity)
         strAcceleration = str(acceleration)
         self.writeCommand(strAxis + 'MO')
-        #Compute velocity
-        self.writeCommand(strAxis + 'VU?')
-        strMaxVelocity = self.ser.read(6).decode()  #5 sig figures
+        #Set velocity
         try:
-            maxVelocity = float(strMaxVelocity)
-        except:
-            print('Failure acquiring maximum velocity')
-            return
-        if velocity <= maxVelocity:
             self.writeCommand(strAxis + 'VA' + strVelocity)
-        else:
-            print('Attempting to use an invalid velocity.' +
-                  'Setting velocity to max: ' + strMaxVelocity)
-            self.writeCommand(strAxis + 'VA' + strMaxVelocity)
-        #Compute acceleration/decceleration
-        self.writeCommand(strAxis + 'AU?')
-        strMaxAcceleration = self.ser.read(10).decode()[3:9] #5 sig figures
-        maxAcceleration = float(strMaxAcceleration)
-        if acceleration <= maxAcceleration:
+        except:
+            print('Attempting to use an invalid velocity.')
+        #Set acceleration/decceleration
+        try:
             self.writeCommand(strAxis + 'AC' + strAcceleration)
             self.writeCommand(strAxis + 'AG' + strAcceleration)
-        else:
-            print('Attempting to use an invalid accleration.' +
-                  'Setting acceleration to max: ' + strMaxAcceleration)
-            self.writeCommand(strAxis + 'AC' + strMaxAcceleration)
-            self.writeCommand(strAxis + 'AG' + strMaxAcceleration)
+        except:
+            print('Attempting to use an invalid accleration.')
         #Move home
         if moveHome==True:
             self.writeCommand(strAxis + 'OR0')  #OR0,OR1,OR2...?

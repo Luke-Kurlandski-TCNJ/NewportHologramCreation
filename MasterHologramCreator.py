@@ -10,6 +10,7 @@ Created on 9/18/19
 from MotorControl import MotorControl #file with MotorControl class
 from ShutterControl import ShutterControl
 from PIL import Image #package to support image work
+import sys
 import time
 import atexit #package to support smooth closure of serial ports
         
@@ -48,7 +49,14 @@ def get_image_array(image):
         
 def run_experiment(img_as_arr, expose_arr, port_motor, port_shutter, width=.02, height=.02):    
     '''
-    
+    Controls the motion of stages and shutter
+        Arguments:
+            (arg1) img_as_arr (list[list[int]] : image as an 2-D greyscale array
+            (arg2) expose_arr (list[int]) : instructions on how long to expose
+            (arg3) port_motor (string) : serial port for the motor
+            (arg4) port_shutter (string) : serial port for the shutter
+            (arg5) width (float) : desired width of the hologram
+            (arg6) height (float) : desired height of the hologram
     '''
     
     try:
@@ -76,13 +84,18 @@ def run_experiment(img_as_arr, expose_arr, port_motor, port_shutter, width=.02, 
                     onRow = True
                     shutter.toggle_shutter(expose_arr[cur_pix])
     except:
-        print('Some error occured')
+        print('An error has occured:', e)
     finally:
-        print('Closing all serial ports')
+        print('Closing the shutter and all serial ports')
+        shutter.ser.close()
         motor.ser.close()
         shutter.ser.close()
     
 def test():
+    '''
+    Test the functionality of the driving program
+    '''
+    
     img_as_arr = []
     for i in range(0,16):
         temp = []
@@ -92,7 +105,8 @@ def test():
     expose_arr = []
     for i in range(0,256):
         expose_arr.append(i) 
-    run_experiment(img_as_arr, expose_arr, 'COM11', 'COM10')   
+    print(img_as_arr)
+    run_experiment(img_as_arr, expose_arr, port_motor='COM10', port_shutter='COM11')   
 
 test()
                
