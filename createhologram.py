@@ -15,8 +15,9 @@ Goals:
 
 import tkinter as tk #support GUI
 from tkinter import filedialog #support file selection
-import MasterHologramCreator #package which drives motor and shutter
 from PIL import ImageTk #package to support Pil and Tk image compatability
+#import movement #package which drives motor and shutter
+import imagework #package to support image modification
 
 class MyGUI:
     def __init__(self, root):
@@ -27,7 +28,7 @@ class MyGUI:
         
         #Set up root
         self.root = root
-        #self.root.attributes('-fullscreen' ,True)
+        self.root.attributes('-fullscreen' ,True)
         self.root.title('Main Hologram Creation')
         #Set up menu
         self.menu = tk.Menu(self.root)
@@ -101,7 +102,7 @@ class MyGUI:
         '''
         
         self.file = filedialog.askopenfilename()
-        self.img_pil = MasterHologramCreator.convert_grey_downsize(self.file, 400, 400)
+        self.img_pil = imagework.convert_grey_downsize(self.file, 400, 400)
         self.img_tk = ImageTk.PhotoImage(self.img_pil)
         self.image_orig_window = tk.Toplevel()
         self.image_orig_window.title('Original Image')
@@ -121,7 +122,7 @@ class MyGUI:
             xPix = self.img_pil.width
             yPix = self.img_pil.height
         #Modify self.img_tk and update on new window
-        self.img_pil = MasterHologramCreator.convert_grey_downsize(self.file, xPix, yPix, True)
+        self.img_pil = imagework.convert_grey_downsize(self.file, xPix, yPix, True)
         self.img_tk = ImageTk.PhotoImage(self.img_pil)
         self.image_mod_window = tk.Toplevel()
         self.image_mod_window.title('Modified Image')
@@ -138,7 +139,7 @@ class MyGUI:
         self.scrollbar_y.configure(command=self.text_arr.yview)
         self.scrollbar_x.configure(command=self.text_arr.xview)
         #Print the array to screen
-        self.img_as_array = MasterHologramCreator.get_image_array(self.img_pil)
+        self.img_as_array = imagework.get_image_array(self.img_pil)
         for i in self.img_as_array:
             for j in i:
                 spaces = '   '
@@ -234,15 +235,15 @@ class MyGUI:
     
     def run(self):
         '''
-        Command off of a button. Calls run_experiment method of MasterHologramCreator
+        Command off of a button. Calls run_experiment method of movement.py
         '''
         
-        #Call MasterHologramCreator runner file
+        #Call movement.py runner file
         width = float(self.entry_width.get())
         height = float(self.entry_height.get())
         port_mot = self.entry_port_mot.get()
         port_shut = self.entry_port_shut.get()
-        MasterHologramCreator.run_experiment(self.img_as_array, self.exposeArr, port_mot, port_shut, width, height)
+        movement.run_experiment(self.img_as_array, self.exposeArr, port_mot, port_shut, width, height)
         
 
 #MainLoop

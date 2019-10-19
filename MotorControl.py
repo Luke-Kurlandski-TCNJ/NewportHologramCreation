@@ -13,7 +13,7 @@ import serial #Library of the Serial-Port
 #import serial.tools.list_ports #Library for listing the COM ports
 import time
 
-class MotorControl:
+class Motor:
     '''
     ser: serial port (serial object)
     '''
@@ -122,7 +122,7 @@ class MotorControl:
         
         
 def test():
-    m = MotorControl('COM11')
+    m = Motor('COM11')
     m.configureAxis(1)
     m.configureAxis(2)
     #m.moveAbsolute(1, -1)

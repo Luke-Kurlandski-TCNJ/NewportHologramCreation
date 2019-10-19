@@ -8,7 +8,7 @@ Created on Tue Oct  1 12:27:10 2019
 import serial
 import time #package used to reduce communications with serial port
 
-class ShutterControl:
+class Shutter:
     '''
     ser: serial port (serial object)
     '''
@@ -66,7 +66,7 @@ class ShutterControl:
         print("Serial Port Closed:", self.ser.port)
         
 def test():
-    s = ShutterControl('COM10')
+    s = Shutter('COM10')
     s.toggle_shutter(2)
     s.toggle_shutter(1)
     s.ser.close()
