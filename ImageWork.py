@@ -73,6 +73,7 @@ def crop_image(dimentions,image):
         print("The dimentions entered are out of order")
     else:
         print("The dimentions entered are not with-in the bounds of the image")
+    return image
 
 
 def test():

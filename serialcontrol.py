@@ -1,27 +1,23 @@
 # -*- coding: utf-8 -*-
 """
-Motor Control class. Provide functional control of Newport Universal 
-Motion Controller/Driver through a USB->Serial Port connection.
-
-Created on 9/16/19
-Last Update on 9/16/19
+Created on Mon Oct 21 11:23:10 2019
 
 @author: Luke Kurlandski
 """
 
-import serial #Library of the Serial-Port
-#import serial.tools.list_ports #Library for listing the COM ports
+import serial
 import time
 
-class Motor:
+class Control:
     '''
-    ser: serial port (serial object)
+    Generic class to allow easy use of machinery that uses serial ports
     '''
-
-    def __init__(self, port, baudrate=19200, timeout=.1, stopbits=1, bytesize=8):
+    
+    def __init__(self, port, baudrate, timeout, stopbits, bytesize):
         '''
-        Construct an object and configure the serial port.
+        Construct a serial object and configure the serial port.
         '''
+        
         self.ser = serial.Serial()
         self.ser.port = port
         self.ser.baudrate = baudrate
@@ -31,11 +27,12 @@ class Motor:
         
     def writeCommand(self, command, closeAfter=False):
         '''
-        Send any command to a serial port.
-        (arg1) self 
-        (arg2) command: the command to send to the motor (string)
-        (arg3) closeAfter: close port after command, if true (boolean)
+        Send any command to a serial port with/without carriage return.
+        Arguments:
+            (arg1) command (string) : the command to send to the motor
+            (arg2) closeAfter (boolean) : if true, close port after command
         '''
+        
         cmd = command
         if cmd.find('\r') == -1:
             cmd = cmd + '\r'
@@ -45,13 +42,57 @@ class Motor:
         if closeAfter == True:
             self.ser.close()   
             
+    def __del__(self): 
+        '''
+        Destructor to ensure the serial port is closed.
+        '''
+        
+        self.ser.close()
+        print("Serial Port Closed:", self.ser.port)
+        
+class Shutter(Control):
+    '''
+    Class to control shutter. Derives from Control class.
+    '''
+    
+    def __init__(self, port, baudrate=9600, timeout=.1, stopbits=1, bytesize=8):
+        '''
+        Contructor calls parent.
+        '''
+        
+        super().__init__(port, baudrate, timeout, stopbits, bytesize)
+            
+    def toggle_shutter(self, pause):
+        '''
+        Opens the shutter. Pauses for a certain amount of time. Closes the shutter.
+        Arguments:
+            (arg1) pause : number of seconds to pause (float)
+        '''
+        
+        self.writeCommand('ens')
+        time.sleep(pause)
+        self.writeCommand('ens')
+        time.sleep(.05) #prevents the shutter from being overloaded by signals
+
+class Motor(Control):
+    '''
+    Class to control the motot. Derives from Control class.
+    '''
+    
+    def __init__(self, port, baudrate=19200, timeout=.1, stopbits=1, bytesize=8):
+        '''
+        Contructor calls parent.
+        '''
+        
+        super().__init__(port, baudrate, timeout, stopbits, bytesize)
+        
     def moveAbsolute(self, axis, goToPos, delay=0):
         '''
         Move the stage to an absolute location. Wait until motion is complete.
-        (arg1) self
-        (arg2) axis: axis of operation (int)
-        (arg3) goToPos: position to navigate to (double)
-        (arg4) delay: additional time to wait in milliseconds (int)
+        Arguments:
+            (arg2) axis (int) : axis of operation 
+            (arg3) goToPos (double) : position to navigate to 
+            (arg4) delay (int) : additional time to wait in milliseconds 
         '''
         
         strAxis = str(axis)
@@ -62,12 +103,11 @@ class Motor:
     def waitMotionDone(self, axis, milliseconds=0):
         '''
         Delays until the device is finished moving plus .1 seconds. 
-        (arg1) self 
-        (arg2) axis: axis of operation (int)
+        Arguments: 
+            (arg1) axis (int) : axis of operation
         '''
         
         strAxis = str(axis)
-        #self.writeCommand(strAxis + 'WS' + str(milliseconds))
         while True:
             self.writeCommand(strAxis + 'MD?')
             try:
@@ -83,11 +123,11 @@ class Motor:
     def configureAxis(self, axis, velocity=1, acceleration=4, moveHome=True):
         '''
         Initial configuration of device.
-        (arg1) self
-        (arg2) axis: axis of operation (int)
-        (arg3) velocity: velocity to set device (double)
-        (arg4) acceleration: acceleration/decceleration to set device (double)
-        (arg5) moveHome: moves device to home position if true (boolean)
+        Arguments:
+            (arg1) axis (int) : axis of operation
+            (arg2) velocity (double) : velocity to set device
+            (arg3) acceleration (double) : acceleration/decceleration to set device
+            (arg4) moveHome (boolean) : moves device to home position if true
         '''
         
         #Turn axis on
@@ -110,21 +150,8 @@ class Motor:
         if moveHome==True:
             self.writeCommand(strAxis + 'OR0')  #OR0,OR1,OR2...?
             self.waitMotionDone(axis)
-    
-    def __del__(self): #FIXME: possible source of major error
-        '''
-        Destructor to ensure the serial port is closed.
-        (arg1) self
-        '''
-        
-        self.ser.close()
-        print("Serial Port Closed:", self.ser.port)
-        
-        
+
 def test():
-    m = Motor('COM11')
-    m.configureAxis(1)
-    m.configureAxis(2)
-    #m.moveAbsolute(1, -1)
-    #m.moveAbsolute(2,-1)
-    #m.__del__()
+    '''
+    Method for internal testing
+    '''

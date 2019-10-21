@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-Master program to create holograms.
+Create holograms programatically with arrays. Serves as a testing ground for 
+complex motion of the stages and shutter.
 
 Created on 9/18/19
 
 @author: Luke Kurlandski
 """
 
-from motorcontrol import Motor #file with MotorControl class
-from shuttercontrol import Shutter
+from serialcontrol import Motor, Shutter
         
 def run_experiment(img_as_arr, expose_arr, port_motor, port_shutter, width=.02, height=.02):    
     '''
@@ -56,7 +56,7 @@ def run_experiment(img_as_arr, expose_arr, port_motor, port_shutter, width=.02, 
     
 def test():
     '''
-    Test the functionality of the driving program
+    Testing method
     '''
     
     img_as_arr = []
@@ -71,5 +71,4 @@ def test():
     print(img_as_arr)
     run_experiment(img_as_arr, expose_arr, port_motor='COM10', port_shutter='COM11')   
 
-#test()
                
