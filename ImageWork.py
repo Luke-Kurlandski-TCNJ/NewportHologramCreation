@@ -2,7 +2,7 @@
 """
 Created on Mon Oct 14 11:39:14 2019
 
-@author: laserlab
+@author: Luke Kurlandski and Matthew Van Soelon
 """
 
 from PIL import Image #package to support image work
