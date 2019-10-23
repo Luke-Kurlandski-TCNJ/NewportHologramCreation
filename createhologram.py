@@ -7,8 +7,6 @@ Created on 9/22/19
 @author: Luke Kurlandski and Daniel Stolz
 """
 
-#FIXME: the order of the serial data is not in the same order as the motor control class!!
-
 import tkinter as tk #GUI library
 from tkinter import ttk #GUI library extension
 from tkinter import filedialog #file selection of image
@@ -17,6 +15,7 @@ from datetime import datetime #Assist with displaying run time
 from datetime import timedelta #Assist with displaying run time
 import time #Assist with pausing and waiting
 import serial #Communication with serial ports
+import serial.tools.list_ports #Listing the COM ports
 import os #Allows for file writing
 #import movement #package which drives motor and shutter
 import imagework #package to support image modification
@@ -32,7 +31,14 @@ class MyGUI:
         
         #Set up root
         self.root = root
-        self.root.geometry('1200x600')
+        root_window_height = 600
+        root_window_width = 1200
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        x_cordinate = int((screen_width/2) - (root_window_width/2))
+        y_cordinate = int((screen_height/2) - (root_window_height/2))
+        self.root.geometry("{}x{}+{}+{}".format(root_window_width, 
+                           root_window_height, x_cordinate, y_cordinate))
         self.root.title('Main Hologram Creation')
         #Set up menu
         self.menu = tk.Menu(self.root)
@@ -89,16 +95,6 @@ class MyGUI:
         self.entry_crop = tk.Entry(self.frame_2x0, width = 10)
         self.entry_crop.pack()
         self.entry_crop.insert(1, 'none')
-        #Set up serial ports 
-        tk.Label(self.frame_3x0, text='Serial Ports', font='bold').pack()
-        tk.Label(self.frame_3x0, text='Enter the serial port for the motor').pack()
-        self.entry_port_mot = tk.Entry(self.frame_3x0, width = 10)
-        self.entry_port_mot.pack()
-        self.entry_port_mot.insert(1, 'COMx')
-        tk.Label(self.frame_3x0, text='Enter the serial port for the shutter').pack()
-        self.entry_port_shut = tk.Entry(self.frame_3x0, width = 10)
-        self.entry_port_shut.pack()
-        self.entry_port_shut.insert(1, 'COMx')
         #Set up the default images
         self.label_img_lbl = tk.Label(self.frame_0x1, text = 'Sample Image')
         self.label_img_lbl.pack()
@@ -231,7 +227,7 @@ class MyGUI:
             parity = lines[4].rstrip()     
             timeout = lines[5].rstrip()
             file.close()
-            return (port, baudrate, bytesize, stopbits, parity, timeout)
+            return (port, baudrate, timeout, stopbits, bytesize, parity)
     
         # Function for creating text input boxes (comboboxes) in the Serialport-Window
         def create_entry():
@@ -281,9 +277,12 @@ class MyGUI:
             label_parity.grid(row=4, column=0)
             label_timeout = tk.Label(serialport_window, text="Timeout:", font=('Arial', 12))
             label_timeout.grid(row=5, column=0)    
-    
-        # Get the port ect from file
-        port, baudrate, bytesize, stopbits, parity, timeout = read_file()
+        
+        try:
+            # Get the port ect from file
+            port, baudrate, timeout, stopbits, bytesize, parity = read_file()
+        except: 
+            print('Going to have to create a new file')
         
         # Function for setting the comboboxes
         def set_combobox():
@@ -304,6 +303,8 @@ class MyGUI:
                 read_file()
                 create_label()
                 create_entry()
+                
+            read_file()
             # Check data
             if (port.isdigit() == True or baudrate.isdigit() == False or bytesize.isdigit() == False or
                 stopbits.replace('.', '').isdigit() == False  or parity.isdigit() == True or 
@@ -344,7 +345,6 @@ class MyGUI:
         save_button.grid(row=8, column=1, sticky='n', pady=4)
         # End of the Serialport-Window
         serialport_window.mainloop()
-        return (port, baudrate, bytesize, stopbits, parity, timeout)
     
     def image_select(self):
         '''
@@ -506,7 +506,7 @@ class MyGUI:
         parity = lines[4].rstrip()
         timeout = float(lines[5])
         file.close()
-        return (port, baudrate, bytesize, stopbits, parity, timeout)
+        return (port, baudrate, timeout, stopbits, bytesize, parity)
     
     def run_experiment(self):
         '''
@@ -528,8 +528,8 @@ class MyGUI:
         #Movement
         try:
             #Motor, Shutter control
-            shutter = Shutter(cfg_sht[0],cfg_sht[1],cfg_sht[2],cfg_sht[3],cfg_sht[4],cfg_sht[5])
-            motor = Motor(cfg_mtr[0],cfg_mtr[1],cfg_mtr[2],cfg_mtr[3],cfg_mtr[4],cfg_mtr[5])
+            shutter = Shutter(cfg_sht[0],cfg_sht[1],cfg_sht[2],cfg_sht[3],cfg_sht[4])
+            motor = Motor(cfg_mtr[0],cfg_mtr[1],cfg_mtr[2],cfg_mtr[3],cfg_mtr[4])
             motor.configureAxis(axis=1, velocity=1.0, acceleration=4, moveHome=True)
             motor.configureAxis(axis=2, velocity=1.0, acceleration=4, moveHome=True)
             #Read greyscale image, move as needed
@@ -537,10 +537,11 @@ class MyGUI:
                 onRow = False #indicates the motor is already at a row
                 for j in range(0, xPix):
                     #Handle pause or abort
-                    while self.listbox.curselection == 1:
-                        time.sleep()
-                    if self.listbox.curselection == 1:
-                        raise Exception
+                    while self.listbox.curselection != 0:
+                        if self.listbox.curselection == 1:
+                            time.sleep(1)
+                        if self.listbox.curselection == 2:
+                            raise Exception
                     #Movement and exposure
                     self.label_position.configure(text='Current Pixel (x,y): ' + str(j) + ',' + str(i))
                     cur_pix = self.img_as_arr[j][i]
