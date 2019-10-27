@@ -25,6 +25,20 @@ class Control:
         self.ser.stopbits = stopbits
         self.ser.bytesize = bytesize
         
+    @classmethod
+    def from_arguments(cls, args):
+        '''
+        Construct serial objects from different data types. Alternative to constructor overload.
+            Arguments:
+                (arg1) args (tuple or list) : arguments to handle
+            Returns:
+                (ret) : class object
+        '''
+        
+        if isinstance(args, tuple) or isinstance(args, list):
+            return cls(args[0], args[1], args[2], args[3], args[4])
+            
+        
     def writeCommand(self, command, closeAfter=False):
         '''
         Send any command to a serial port with/without carriage return.
