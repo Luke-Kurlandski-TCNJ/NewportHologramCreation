@@ -121,14 +121,12 @@ class SingleImageCreator(GenericImageCreator):
         self.button_update = tk.Button(self.frames[3][0], text = 'Update all Information', command=self.get_data)
         self.button_update.pack()
         
-        #Set up Running Experiment
+        #Set up Run Experiment
         tk.Label(self.frames[4][0], text='6) Run Experiment', font="bold").pack()
-        self.button_run = tk.Button(self.frames[4][0], text = 'Run Experiment', command=self.run_experiment)
-        self.button_run.pack()
         self.listbox = tk.Listbox(self.frames[4][0], height=3)
         self.listbox.pack()
-        self.listbox.insert(1, "Run-Mode")
-        self.listbox.insert(2, "Pause-Mode")
+        self.listbox.insert(1, "Run")
+        self.listbox.insert(2, "Pause")
         self.listbox.insert(3, "Abort")
         self.listbox.activate(1)
         
@@ -155,7 +153,10 @@ class SingleImageCreator(GenericImageCreator):
     
     def get_data(self):
         """
-        Gets data from main window. Drives next processes in program.
+        Gets data from main window and drives next processes in program.
+        
+        Notes:
+            Provides basic feedback to user if processes go wrong.
         """
         
         #Get hologram size, image modifcations
@@ -174,15 +175,36 @@ class SingleImageCreator(GenericImageCreator):
         cropping = self.entry_crop.get()
         exposure_lines = self.exposure_details.get('1.0','end-1c').splitlines()
         ignore_lines = self.ignore_details.get('1.0','end-1c').splitlines()
-        config_shutter = self.get_serial_config('Shutter')
-        config_motor = self.get_serial_config('Motor')
+        try:
+            config_shutter = self.get_serial_config('Shutter')
+            config_motor = self.get_serial_config('Motor')
+        except:
+            return
         
         #Modify the image
-        self.modify_image(xPix, yPix, cropping)
+        try:
+            self.modify_image(xPix, yPix, cropping)
+        except:
+            message = 'Something went wrong with the image modification process.'
+            self.error_window(self.root, message)
+            return
+        
         #Convert the image into an array
-        img_as_arr = self.image_as_array(self.root, self.img_pil_mod, 'Modified Image')
+        try:
+            img_as_arr = self.image_as_array(self.root, self.img_pil_mod, 'Modified Image')
+        except:
+            message = 'Something went wrong with turning the image into an array.'
+            self.error_window(self.root, message)
+            return
+        
         #Generate exposure arrays based upon user's entry
-        exposure_arr = self.generate_exposure_details(exposure_lines, ignore_lines)
+        try:
+            exposure_arr = self.generate_exposure_details(exposure_lines, ignore_lines)
+        except:
+            message = 'Something went wrong with the exposure details.\nCheck your input'
+            self.error_window(self.root, message)
+            return
+        
         #Generate and print a time estimation
         run_time = self.time_estimation(img_as_arr, exposure_arr, xPix, yPix, 
                                         hologram_width, hologram_height)
@@ -206,11 +228,20 @@ class SingleImageCreator(GenericImageCreator):
         #Modify the image
         self.img_pil_mod = imagework.convert_grey_downsize(self.file, xPix, yPix, True)
         self.img_tk_mod = ImageTk.PhotoImage(self.img_pil_mod)
-        if cropping != 'none' or '':
+        if cropping.capitalize() != 'none'.capitalize() and cropping != '':
             self.img_pil_mod = imagework.crop_image(cropping, self.img_pil_mod)
             self.img_tk_mod = ImageTk.PhotoImage(self.img_pil_mod)
+        #The main window cannot handle images larger than 200x200
+        if xPix > 200 and yPix <= 200:
+            img_temp = ImageTk.PhotoImage(imagework.convert_grey_downsize(self.file, newX=200, newY=yPix, convert=True))
+        elif yPix > 200 and xPix <= 200:
+            img_temp = ImageTk.PhotoImage(imagework.convert_grey_downsize(self.file, newX=xPix, newY=200, convert=True))
+        elif xPix > 200 and yPix > 200:
+            img_temp = ImageTk.PhotoImage(imagework.convert_grey_downsize(self.file, newX=xPix, newY=200, convert=True))
+        else:
+            img_temp = self.img_tk_mod
         #Update on screen
-        self.label_img_mod.configure(image=self.img_tk_mod)
+        self.label_img_mod.configure(image=img_temp)
         self.label_img_lbl_mod.configure(text='Modified Image')
             
     def time_estimation(self, img_as_arr, exposure_arr, xPix, yPix, hologram_width, hologram_height):
@@ -263,6 +294,12 @@ class SingleImageCreator(GenericImageCreator):
             (arg8) exposure_arr (list[int]) : mapping of pixel values to exposure time
         """
         
+        #Wait for the user to select run
+        while self.listbox.curselection != 0:
+            time.sleep(1)
+            
+        #Capture the screen?
+            
         #Record the start time of the experiment and compute dot separation
         self.label_start_time.configure(text = 'Start Time: ' + datetime.now().strftime('%H:%M:%S -- %d/%m/%Y'))
         self.listbox.activate(0)

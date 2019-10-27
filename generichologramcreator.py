@@ -109,53 +109,6 @@ class GenericImageCreator:
         menu.add_command(label='Quit Window', command=window.destroy)
         return menu
     
-    def main_help(self, window, subject):
-        """
-        Read the instructions from a file and print on a popup window.
-        
-        Arguments:
-            (arg1) window (tk.Toplevel) : window to apply help window to
-            (arg2) subject (string) : subject user requires assistence with
-        """
-        
-        help_window = self.help_me(window, 'Help : ' + subject, 400, 800)
-        try:
-            file = open('Help ' + subject + '.txt', 'r')
-        except:
-            print('Not found')
-            tk.Label(help_window, text = 'Nothing to help you with at the moment').pack()
-            return
-        text = tk.Text(help_window, width=95, height=22)
-        text.grid()
-        text.insert(tk.INSERT, file.read())
-        self.apply_scrollbars(help_window, text, True, True)
-        file.close()
-        
-    def help_me(self, window, title='Help', help_window_height=150, help_window_width=200):
-        """
-        Create a 'help me' pop up window for any window.
-        
-        Arguments:
-            (arg1) window (tk.Toplevel) : window to apply help window to
-            (arg2) title (string) : name for the window
-            (arg3) help_window_height (int) : size of window in y direction
-            (arg4) help_window_width (int) : size of window in x direction
-            
-        Returns:
-            (ret1) help_window (tk.Toplevel) : the help window
-        """
-        
-        help_window = tk.Toplevel(window) 
-        self.set_up_menu(help_window)
-        help_window.title(title)
-        help_window.resizable(True, True)
-        screen_width = help_window.winfo_screenwidth()
-        screen_height = help_window.winfo_screenheight()
-        x_cordinate = int((screen_width/2) - (help_window_width/2))
-        y_cordinate = int((screen_height/2) - (help_window_height/2))
-        help_window.geometry("{}x{}+{}+{}".format(help_window_width, help_window_height, x_cordinate, y_cordinate))
-        return help_window
-    
     def image_as_array(self, window, img_pil, title):
         """
         Convert an image into an array and display array in a new window.
@@ -243,7 +196,7 @@ class GenericImageCreator:
         Set up the serial port menu and write configurations to a file. 
         
         Notes:
-            Writes user choices into file: port_name + " Serial Port Values.txt"
+            Writes user choices in: 'Serial Port Congifurations ' + port_name + '.txt'
             
         Arguments:
             (arg1) port_name (string) : machinery the port is controlling
@@ -265,17 +218,14 @@ class GenericImageCreator:
             parity = cb_parity.get()
             timeout = cb_timeout.get()
             #Creating a file for the serial port values
-            file = open(port_name + " Serial Port Values.txt","w")
+            file = open('Serial Port Congifurations ' + port_name + '.txt', 'w')
             file.write(port + "\n" + baudrate + "\n" + bytesize + "\n" + stopbits + "\n" + parity + "\n" + timeout )
             file.close()
             serialport_window.destroy()
-        
-        #Get the previous serial configurations from the file
-        port, baudrate, timeout, stopbits, bytesize, parity = self.get_proper_file_info(port_name)
-        
+            
         #Create serial port window
         serialport_window = tk.Toplevel(self.root) 
-        serialport_window.title(port_name + ' Serial-Port')
+        serialport_window.title('Serial Port: ' + port_name)
         serialport_window.resizable(False, False)  
         serialport_window_height = 200
         serialport_window_width = 280
@@ -287,7 +237,6 @@ class GenericImageCreator:
         
         #Create a menu bar in te serial port window
         serialport_window_menubar = self.set_up_menu(serialport_window)
-        serialport_window_menubar.add_command(label="Help", command=lambda: self.serial_help(serialport_window))
         
         #Create labels for the port window
         tk.Label(serialport_window, text="Port:", font=('Arial', 12)).grid(row=0, column=0)
@@ -297,11 +246,11 @@ class GenericImageCreator:
         tk.Label(serialport_window, text="Parity:", font=('Arial', 12)).grid(row=4, column=0)
         tk.Label(serialport_window, text="Timeout:", font=('Arial', 12)).grid(row=5, column=0) 
 
-        #Get the users choices for serial configurations
+        #Construct the users choices for serial configurations
         data_baudrate = ("75", "110", "134", "150", "300", "600", "1200", "1800", "2400", "4800", "7200", "9600", "14400", "19200", "38400", "57600", "115200", "128000")
         data_bytesize = ("4", "5", "6", "7", "8")
         data_stopbits = ("1", "1.5", "2")
-        data_parity = ("N", "E", "O", "S", "M")
+        data_parity = ("None", "Even", "Odd", "Space", "Mark")
         data_timeout = ("0.1", "0.5", "1", "1.5", "2")
         data_port = []
         comlist = serial.tools.list_ports.comports()
@@ -311,22 +260,29 @@ class GenericImageCreator:
         #Create combo boxes for the user to select options from
         cb_port=ttk.Combobox(serialport_window, width = 12, font=('Arial', 12), values=data_port)
         cb_port.grid(row=0, column=1)
-        cb_port.set(port)
         cb_baudrate=ttk.Combobox(serialport_window, width = 12, font=('Arial', 12), values=data_baudrate)
         cb_baudrate.grid(row=1, column=1)
-        cb_baudrate.set(baudrate)
         cb_bytesize=ttk.Combobox(serialport_window, width = 12, font=('Arial', 12), values=data_bytesize)
         cb_bytesize.grid(row=2, column=1)
-        cb_bytesize.set(bytesize)
         cb_stopbits=ttk.Combobox(serialport_window, width = 12, font=('Arial', 12), values=data_stopbits)
         cb_stopbits.grid(row=3, column=1)
-        cb_stopbits.set(stopbits)
         cb_parity=ttk.Combobox(serialport_window, width = 12, font=('Arial', 12), values=data_parity)
         cb_parity.grid(row=4, column=1)
-        cb_parity.set(parity)
         cb_timeout=ttk.Combobox(serialport_window, width = 12, font=('Arial', 12), values=data_timeout)
         cb_timeout.grid(row=5, column=1)
-        cb_timeout.set(timeout)
+        
+        #Get the previous serial configurations from the file and print to combo boxes
+        try: 
+            file = open('Serial Port Congifurations ' + port_name + '.txt', 'r')
+            lines = file.readlines()
+            cb_port.set(lines[0].rstrip())
+            cb_baudrate.set(lines[1].rstrip())
+            cb_bytesize.set(lines[2].rstrip())
+            cb_stopbits.set(lines[3].rstrip())
+            cb_parity.set(lines[4].rstrip())
+            cb_timeout.set(lines[5].rstrip())
+        except FileNotFoundError:
+            print('Do Nothing')
             
         #Create a Save-Button in the serial port window
         save_button = tk.Button(serialport_window, text='Save', font=('Arial', 12), command=serial_save)
@@ -334,89 +290,6 @@ class GenericImageCreator:
         
         #Run the serial port window
         serialport_window.mainloop()
-        
-    def get_proper_file_info(self, port_name):
-        """
-        Open the file containing previous configurations and read.
-        
-        Notes:
-            Handles incorrect file format or file not found with recursive calls
-            May have logical errors in Exception handling
-        
-        Arguments:
-            (arg1) port_name (string) : machinery the port is controlling
-        
-        Returns:
-            (ret1) port (int) : port number to appended to COM
-            (ret2) baudrate : baudrate of the affiliated serial port
-            (ret3) bytesize : bytesize of the affiliated serial port
-            (ret4) stopbits : stopbits of the affiliated serial port
-            (ret5) parity : parity of the affiliated serial port
-            (ret6) timeout : timeout of the affiliated serial port
-        """
-        
-        try:
-            #Open file and ensure proper format
-            file = open(port_name + ' Serial Port Values.txt', 'r')
-            lines = file.readlines()
-            count = len(lines)
-            if count != 6:
-                raise Exception
-            #Remove trailing characters
-            port = lines[0].rstrip();  
-            baudrate = lines[1].rstrip(); 
-            bytesize = lines[2].rstrip()
-            stopbits = lines[3].rstrip()
-            parity = lines[4].rstrip()     
-            timeout = lines[5].rstrip()
-            #Test the data to ensure correct types
-            if (port.isdigit() or not baudrate.isdigit() or not bytesize.isdigit() or
-                    not stopbits.replace('.', '').isdigit() or parity.isdigit() or 
-                            not timeout.replace('.', '').isdigit()):
-                raise Exception
-            return (port, baudrate, timeout, stopbits, bytesize, parity)
-        except FileNotFoundError:
-            #Create the file and fill with sample values
-            file = open(port_name + " Serial Port Values.txt","w")
-            file.write("str" + "\n" + "int" + "\n" + "int" + "\n" + "float" + "\n" + "str" + "\n" + "float")
-            file.close()
-            return self.get_proper_file_info(port_name)
-        except Exception:
-            #Incorrect format
-            file.close()
-            file = open(port_name + " Serial Port Values.txt","w")
-            file.write("str" + "\n" + "int" + "\n" + "int" + "\n" + "float" + "\n" + "str" + "\n" + "float")
-            file.close()
-            return self.get_proper_file_info(port_name)
-        
-    def serial_help(self, serialport_window):
-        """
-        Create a help window specifically for the serial port window.
-        
-        Arguments:
-            (arg1) serialport_window (tk.Toplevel) : window of the serial port
-        """
-        
-        help_window = self.help_me(serialport_window, False)
-        #Label in the Help-Window
-        label_COM_Port = tk.Label(help_window, text="Timeout Values:", font=('Arial', 12))
-        label_COM_Port.grid(row=0, column=0, sticky='w')
-        label_COM_Port = tk.Label(help_window, text="Unit [s]", font=('Arial', 12))
-        label_COM_Port.grid(row=0, column=1, sticky='w')
-        label_COM_Port = tk.Label(help_window, text="Parity Values:", font=('Arial', 12))
-        label_COM_Port.grid(row=1, column=0, sticky='w')
-        label_COM_Port = tk.Label(help_window, text="N (None)", font=('Arial', 12))
-        label_COM_Port.grid(row=1, column=1, sticky='w')
-        label_COM_Port = tk.Label(help_window, text="E (Even)", font=('Arial', 12))
-        label_COM_Port.grid(row=2, column=1, sticky='w')
-        label_COM_Port = tk.Label(help_window, text="O (Odd)", font=('Arial', 12))
-        label_COM_Port.grid(row=3, column=1, sticky='w')
-        label_COM_Port = tk.Label(help_window, text="S (Space)", font=('Arial', 12))
-        label_COM_Port.grid(row=4, column=1, sticky='w')
-        label_COM_Port = tk.Label(help_window, text="M (Mark)", font=('Arial', 12))
-        label_COM_Port.grid(row=5, column=1, sticky='w')
-        #Activate the help window
-        help_window.mainloop()
         
     def get_serial_config(self, port_name):
         """
@@ -436,36 +309,93 @@ class GenericImageCreator:
         
         #Read the file and read the data line by line
         try:
-            file = open(port_name + " Serial Port Values.txt", "r")
+            file = open('Serial Port Congifurations ' + port_name + '.txt', "r")
+            lines = file.readlines() 
+            port = lines[0].rstrip() 
+            baudrate = int(lines[1]) 
+            bytesize = int(lines[2])
+            stopbits = float(lines[3])
+            parity = lines[4].rstrip()
+            timeout = float(lines[5])
+            file.close()
+            return (port, baudrate, timeout, stopbits, bytesize, parity)
         except FileNotFoundError:
-            self.error_window(self.root, 'You have not specified serial port information.')
-        lines = file.readlines() 
-        port = lines[0].rstrip() 
-        baudrate = int(lines[1]) 
-        bytesize = int(lines[2])
-        stopbits = float(lines[3])
-        parity = lines[4].rstrip()
-        timeout = float(lines[5])
-        file.close()
-        return (port, baudrate, timeout, stopbits, bytesize, parity)
+            message = 'You have not specified any serial port information for the ' 
+            + port_name + '.\n There is no record of information from a prior experiment.'
+            self.error_window(self.root, message)
+            raise
     
     def error_window(self, window, message):
         """
-        Launch an error window on the affiliated screen.
+        Launch an error window on the affiliated window
         
         Arguments:
-            (arg1) window (tk.Toplevel) : window the error window is attatched to
-            (arg2) message (string) : error message to display on screen
+            (arg1) window (tk.Toplevel) : master window the error window is attatched to
+            (arg2) title (string) : title of the pop-up window
+            
+        Returns:
+            (ret1) error_window (tk.Toplevel) : the error window
         """
         
-        error_window = tk.Toplevel(window) 
-        error_window.title("Error")
-        error_window.resizable(False, False)
-        error_window_height = 150
-        error_window_width = 200
-        screen_width = error_window.winfo_screenwidth()
-        screen_height = error_window.winfo_screenheight()
-        x_cordinate = int((screen_width/2) - (error_window_width/2))
-        y_cordinate = int((screen_height/2) - (error_window_height/2))
-        error_window.geometry("{}x{}+{}+{}".format(error_window_width, error_window_height, x_cordinate, y_cordinate))
-        tk.Label(text = message, font = 'Bold').pack()
+        error_window = self.pop_up_window(window, 'Error', resizable = True, window_height=200)
+        tk.Label(error_window, text=message).pack()
+        return error_window
+    
+    def help_window(self, window, subject, window_height=400, window_width=800):
+        """
+        Create a 'help me' pop up window for any window based upon the instructions from file.
+        
+        Arguments:
+            (arg1) window (tk.Toplevel) : window to apply help window to
+            (arg2) subject (string) : subject user requires assistence with
+            (arg3) help_window_height (int) : size of window in y direction
+            (arg4) help_window_width (int) : size of window in x direction
+            
+        Returns:
+            (ret1) help_window (tk.Toplevel) : the help window
+        """
+        
+        help_window = self.pop_up_window(window, 'Help', window_height, window_width, resizable = True)
+        try:
+            file = open('Help ' + subject + '.txt', 'r')
+        except:
+            print('Not found')
+            tk.Label(help_window, text = 'Nothing to help you with at the moment').pack()
+            return
+        text = tk.Text(help_window, width=95, height=22)
+        text.grid()
+        text.insert(tk.INSERT, file.read())
+        self.apply_scrollbars(help_window, text, True, True)
+        file.close()
+        return help_window
+    
+    def pop_up_window(self, window, title='Message', window_height=150, window_width=200, resizable = True):
+        """
+        Launch an pop up window on the affiliated window.
+        
+        Arguments:
+            (arg1) window (tk.Toplevel) : master window the error window is attatched to
+            (arg2) title (string) : title of the pop-up window
+            (arg3) window_height (int) : height of the pop-up window
+            (arg4) window_width (int) : width of the pop-up window
+            (arg5) resizable (boolean) : if the user can modify the window size
+            
+        Retuns:
+            (ret1) pop_up_window (tk.Toplevel) : pop-up window
+        """
+        
+        pop_up_window = tk.Toplevel(window) 
+        pop_up_window.title(title)
+        pop_up_window.resizable(resizable, resizable)
+        screen_width = pop_up_window.winfo_screenwidth()
+        screen_height = pop_up_window.winfo_screenheight()
+        x_cordinate = int((screen_width/2) - (window_width/2))
+        y_cordinate = int((screen_height/2) - (window_height/2))
+        window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+        return pop_up_window
+    
+    
+        
+        
+        
+        

@@ -19,6 +19,8 @@ def convert_grey_downsize(image_file, newX=None, newY=None, convert=False):
     
     image = Image.open(image_file)
     if(newX != None and newY != None):
+        if(newX > image.width or newY > image.height):
+            raise Exception
         image = image.resize((newX,newY))
     if convert == True:
         image = image.convert('L')
