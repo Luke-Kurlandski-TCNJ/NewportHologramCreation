@@ -1,0 +1,26 @@
+HologramWidth
+0.02
+Hologram Height
+0.02
+xPix
+-101
+yPix
+101
+Cropping
+NONE
+Exposure Lines
+[0,50]:9
+[50,100]:1
+[100,150]:7
+[150,200]:2
+[200,255]:0
+
+
+Ignore Lines
+[0,50]:6
+[50,100]:1.5
+[100,150]:2
+[150,200]:2.5
+[200,255]:99
+
+

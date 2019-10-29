@@ -9,7 +9,7 @@ import tkinter as tk #GUI library
 from tkinter import ttk #GUI library extension
 import serial #Communication with serial ports
 import serial.tools.list_ports #Listing the COM ports
-import imagework #package to support image modification
+import imagemodification #package to support image modification
 
 class GenericImageCreator:
     """
@@ -32,11 +32,19 @@ class GenericImageCreator:
         
         #Set up the root
         self.root = root
-        screen_width = root.winfo_screenwidth()
-        screen_height = root.winfo_screenheight()
+        
+        #Error Box
+        self.window_communication = self.pop_up_window(self.root, 'Communication Window', 660, 425, True, -200, -20) 
+        self.text_communication = tk.Text(self.window_communication, width=50, height=40)
+        self.text_communication.grid()
+        self.apply_scrollbars(self.window_communication, self.text_communication, True, True)
+        
+        #Configure the root
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
         x_cordinate = int((screen_width/2) - (window_width/2))
-        y_cordinate = int((screen_height/2) - (window_height/2) - 50)
-        self.root.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+        y_cordinate = int((screen_height/2) - (window_height/2))
+        self.root.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate+200, y_cordinate-40))
         self.root.title(window_title)
         
     def set_up_frames(self, window, frames_horizontal, frames_vertical):
@@ -138,7 +146,7 @@ class GenericImageCreator:
         scrollbar_y.configure(command = text_arr.yview)
         scrollbar_x.configure(command = text_arr.xview)
         #Print the array to screen
-        img_as_arr = imagework.get_image_array(img_pil)
+        img_as_arr = imagemodification.get_image_array(img_pil)
         for i in img_as_arr:
             for j in i:
                 spaces = '   '
@@ -236,7 +244,7 @@ class GenericImageCreator:
         serialport_window.geometry("{}x{}+{}+{}".format(serialport_window_width, serialport_window_height, x_cordinate, y_cordinate))
         
         #Create a menu bar in te serial port window
-        serialport_window_menubar = self.set_up_menu(serialport_window)
+        self.set_up_menu(serialport_window)
         
         #Create labels for the port window
         tk.Label(serialport_window, text="Port:", font=('Arial', 12)).grid(row=0, column=0)
@@ -282,7 +290,7 @@ class GenericImageCreator:
             cb_parity.set(lines[4].rstrip())
             cb_timeout.set(lines[5].rstrip())
         except FileNotFoundError:
-            print('Do Nothing')
+            print('No previous serial data detected')
             
         #Create a Save-Button in the serial port window
         save_button = tk.Button(serialport_window, text='Save', font=('Arial', 12), command=serial_save)
@@ -290,7 +298,22 @@ class GenericImageCreator:
         
         #Run the serial port window
         serialport_window.mainloop()
+    
+    def store_previous_data(self, file_name, subjects, datas):
+        """
+        Store data entered on the main screen in a txt file for later use.
         
+        Arguments:
+            (arg1) file_name (string) : name of txt file
+            (arg2) subjects (list[string]) : subject headers to proceed data in file
+            (arg3) datas (list[string]) : the data pulled from the UI
+        """
+        
+        with open(file_name, 'w') as file:
+            for i,j in zip(subjects,datas):
+                file.write(str(i) + '\n')
+                file.write(str(j) + '\n')
+            
     def get_serial_config(self, port_name):
         """
         Read correct file to get serial configuations for a device. 
@@ -369,9 +392,9 @@ class GenericImageCreator:
         file.close()
         return help_window
     
-    def pop_up_window(self, window, title='Message', window_height=150, window_width=200, resizable = True):
+    def pop_up_window(self, window, title='Message', window_height=150, window_width=200, resizable = True, x_move=0, y_move=0):
         """
-        Launch an pop up window on the affiliated window.
+        Launch an pop up window on the affiliated window. Centers on Screen.
         
         Arguments:
             (arg1) window (tk.Toplevel) : master window the error window is attatched to
@@ -379,6 +402,8 @@ class GenericImageCreator:
             (arg3) window_height (int) : height of the pop-up window
             (arg4) window_width (int) : width of the pop-up window
             (arg5) resizable (boolean) : if the user can modify the window size
+            (arg6) x_move (int) : a slight shift in the x location of window
+            (arg7) y_move (int) : a slight shift in the y location of window
             
         Retuns:
             (ret1) pop_up_window (tk.Toplevel) : pop-up window
@@ -389,9 +414,15 @@ class GenericImageCreator:
         pop_up_window.resizable(resizable, resizable)
         screen_width = pop_up_window.winfo_screenwidth()
         screen_height = pop_up_window.winfo_screenheight()
-        x_cordinate = int((screen_width/2) - (window_width/2))
-        y_cordinate = int((screen_height/2) - (window_height/2))
-        window.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+        x_cordinate = int((screen_width/2) - (window_width/2)) + x_move
+        y_cordinate = int((screen_height/2) - (window_height/2)) + y_move
+        
+        #pop_up_window
+        
+        #pop_up_window.geometry(str(window_height)+'x'+str(window_width)+' + '+str(x_cordinate)+' + '+str(y_cordinate))
+        
+        pop_up_window.geometry("{}x{}+{}+{}".format(window_width, window_height, 
+            (x_cordinate+x_move), (y_cordinate+y_move)))
         return pop_up_window
     
     

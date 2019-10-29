@@ -13,7 +13,7 @@ from PIL import ImageTk #Pil and Tk image compatability
 from datetime import datetime #Assist with displaying run time
 from datetime import timedelta #Assist with displaying run time
 import time #Assist with pausing and waiting
-import imagework #package to support image modification
+import imagemodification #package to support image modification
 from serialcontrol import Motor, Shutter #Allows communication with machinery
 from generichologramcreator import GenericImageCreator #Parent Class
 
@@ -33,9 +33,9 @@ class SingleImageCreator(GenericImageCreator):
             (arg1) root (Tk) : the root window
         """
         
-        #Set up the main window (700x650), frames (3x4)
+        #Set up the main window (700x650), frames[y][x]
         super().__init__(root, 700, 650, 'Single Hologram Creation')
-        self.frames = self.set_up_frames(self.root, 3, 5)
+        self.frames = self.set_up_frames(self.root, 4, 5) #x, y
         self.frames[0][1].grid(row=0, column=1, pady=10, rowspan=200, columnspan=200, sticky='NW')
         self.frames[1][1].grid(row=1, column=1, pady=10, rowspan=200, columnspan=200, sticky='W')
         self.frames[0][2].grid(row=0, column=2, pady=10, rowspan=200, columnspan=200, sticky='NW', padx=250)
@@ -46,7 +46,7 @@ class SingleImageCreator(GenericImageCreator):
         self.menu.add_command(label='Shutter Serial', command=lambda: self.setup_serial_port('Shutter'))
         submenu_help = tk.Menu(self.menu)
         self.menu.add_cascade(label='Help', menu=submenu_help)
-        submenu_help.add_command(label='General Instructions', command=lambda: self.main_help(self.root, 'General Instructions'))
+        submenu_help.add_command(label='General Instructions', command=lambda: self.help_window(self.root, 'General Instructions'))
         submenu_help.add_command(label='Film Information', command=lambda: self.main_help(self.root, 'Film Information'))
         submenu_help.add_command(label='Image Selection', command=lambda: self.main_help(self.root, 'Image Selection'))
         submenu_help.add_command(label='Image Modification', command=lambda: self.main_help(self.root, 'Image Modification'))
@@ -57,13 +57,11 @@ class SingleImageCreator(GenericImageCreator):
         #Set up Film Size
         tk.Label(self.frames[0][0], text='1) Film Information', font="bold").pack()
         tk.Label(self.frames[0][0], text='Image Width on Film (m)').pack()
-        self.entry_width = tk.Entry(self.frames[0][0], width = 10, text=.02)
+        self.entry_width = tk.Entry(self.frames[0][0], width = 10)
         self.entry_width.pack()
-        self.entry_width.insert(1,'0.02')
         tk.Label(self.frames[0][0], text='Image Height on Film (m)').pack()
         self.entry_height = tk.Entry(self.frames[0][0], width = 10)
         self.entry_height.pack()
-        self.entry_height.insert(1,'0.02')
         
         #Set up Image Selection
         tk.Label(self.frames[1][0], text='2) Image Selection', font="bold").pack()
@@ -75,24 +73,22 @@ class SingleImageCreator(GenericImageCreator):
         tk.Label(self.frames[2][0], text='Desired Horizontal Gratings').pack()
         self.entry_Xpix = tk.Entry(self.frames[2][0], width = 10)
         self.entry_Xpix.pack()
-        self.entry_Xpix.insert(1,'100')
         tk.Label(self.frames[2][0], text='Desired Vertical Gratings').pack()
         self.entry_Ypix = tk.Entry(self.frames[2][0], width = 10)
         self.entry_Ypix.pack()
-        self.entry_Ypix.insert(1,'100')
         tk.Label(self.frames[2][0],text='Optional Cropping').pack()
         self.entry_crop = tk.Entry(self.frames[2][0], width = 10)
         self.entry_crop.pack()
-        self.entry_crop.insert(1, 'none')
         
         #Set up Default Images
         self.label_img_lbl = tk.Label(self.frames[0][1], text = 'Sample Image')
         self.label_img_lbl.pack()
-        self.img_pil = imagework.convert_grey_downsize('DefaultImage.png')
+        self.file = 'DefaultImage.png'
+        self.img_pil = imagemodification.convert_grey_downsize('DefaultImage.png')
         self.img_tk = ImageTk.PhotoImage(self.img_pil)
         self.label_img = tk.Label(self.frames[0][1], image=self.img_tk)
         self.label_img.pack()
-        self.img_pil_mod = imagework.convert_grey_downsize('DefaultImage.png', convert=True)
+        self.img_pil_mod = imagemodification.convert_grey_downsize('DefaultImage.png', convert=True)
         self.img_tk_mod = ImageTk.PhotoImage(self.img_pil_mod)
         self.label_img_lbl_mod = tk.Label(self.frames[1][1], text = 'Modified Sample Image')
         self.label_img_lbl_mod.pack()
@@ -108,21 +104,24 @@ class SingleImageCreator(GenericImageCreator):
         tk.Label(sub_frame_1, text='Exposure Details').grid(row=0, column=0)
         self.exposure_details = tk.Text(sub_frame_1, width=20, height=15)
         self.exposure_details.grid(row=1, column=0)
-        self.exposure_details.insert(tk.END, '[0,50]:1\n[50,100]:1.5\n[100,150]:2\n[150,200]:2.5\n[200,255]:3')
         self.apply_scrollbars(sub_frame_1, self.exposure_details, x=True, y=True, yrow=1, ycol=1, xrow=2, xcol=0)
         tk.Label(sub_frame_2, text='Ignore Details').grid(row=0, column=0)
         self.ignore_details = tk.Text(sub_frame_2, width=20, height=15)
         self.ignore_details.grid(row=1, column=0)
-        self.ignore_details.insert(tk.END, '[0,0]\n[255,255]')
         self.apply_scrollbars(sub_frame_2, self.ignore_details, x=True, y=True, yrow=1, ycol=1, xrow=2, xcol=0)
         
-        #Set up Prepare Experiment
-        tk.Label(self.frames[3][0], text='5) Prepare Experiment', font="bold").pack()
+        #Set up Initialize Experiment
+        tk.Label(self.frames[3][0], text='5) Initialize Experiment', font="bold").pack()
         self.button_update = tk.Button(self.frames[3][0], text = 'Update all Information', command=self.get_data)
         self.button_update.pack()
+        self.button_update = tk.Button(self.frames[3][0], text = 'Run Experiment', 
+            command=lambda: self.run_experiment(self.hologram_width, self.hologram_height, 
+                self.xPix, self.yPix, self.config_shutter, self.config_motor, self.img_as_arr, 
+                    self.exposure_arr))
+        self.button_update.pack()
         
-        #Set up Run Experiment
-        tk.Label(self.frames[4][0], text='6) Run Experiment', font="bold").pack()
+        #Set up Running Experiment
+        tk.Label(self.frames[4][0], text='6) Running Experiment', font="bold").pack()
         self.listbox = tk.Listbox(self.frames[4][0], height=3)
         self.listbox.pack()
         self.listbox.insert(1, "Run")
@@ -138,7 +137,26 @@ class SingleImageCreator(GenericImageCreator):
         self.label_end_time_est = tk.Label(self.frames[4][0], text='End Time Estimate: '+ datetime.now().strftime('%H:%M:%S -- %d/%m/%Y'))
         self.label_end_time_est.pack()
         self.label_position = tk.Label(self.frames[4][0], text='Current Pixel (x,y): (x,y)')
-        self.label_position.pack()        
+        self.label_position.pack() 
+        
+        #Fill with values from previous experiment
+        with open('Prior Experiment Data Single Image Creation.txt', 'r') as file:
+            try:
+                lines = file.readlines()
+                print(lines)
+                self.entry_width.insert(1, lines[1].rstrip())
+                self.entry_height.insert(1, lines[3].rstrip())
+                self.entry_Xpix.insert(1, lines[5].rstrip())
+                self.entry_Ypix.insert(1, lines[7].rstrip())
+                self.entry_crop.insert(1, lines[9].rstrip())
+                cont = 11
+                for i in range(11, lines.index('Ignore Lines\n')):
+                    self.exposure_details.insert(tk.END, lines[i].rstrip() + '\n')
+                    cont = i
+                for j in range(cont+2, len(lines)):
+                    self.ignore_details.insert(tk.END, lines[j].rstrip() + '\n')
+            except:
+                print('Something is wrong with the \'Prior Experiment Data Single Image Creation.txt\' file')
     
     def image_select(self):
         """
@@ -146,10 +164,11 @@ class SingleImageCreator(GenericImageCreator):
         """
         
         self.file = filedialog.askopenfilename()
-        self.img_pil = imagework.convert_grey_downsize(self.file, newX=None, newY=None, convert=False)
-        self.img_tk = ImageTk.PhotoImage(imagework.convert_grey_downsize(self.file, newX=200, newY=200, convert=False))
+        self.img_pil = imagemodification.convert_grey_downsize(self.file, newX=None, newY=None, convert=False)
+        self.img_tk = ImageTk.PhotoImage(imagemodification.convert_grey_downsize(self.file, newX=200, newY=200, convert=False))
         self.label_img.configure(image=self.img_tk)
         self.label_img_lbl.configure(text='Original Image')
+        self.text_communication.insert(tk.END, 'Your image is: ' + str(self.file) + '\n')
     
     def get_data(self):
         """
@@ -160,60 +179,72 @@ class SingleImageCreator(GenericImageCreator):
         """
         
         #Get hologram size, image modifcations
-        hologram_width = float(self.entry_width.get())
-        hologram_height = float(self.entry_height.get())
+        self.hologram_width = float(self.entry_width.get())
+        self.hologram_height = float(self.entry_height.get())
         try: 
-            xPix = int(self.entry_Xpix.get())
+            self.xPix = int(self.entry_Xpix.get())
         except:
-            xPix = self.img_pil_mod.width
+            self.xPix = self.img_pil_mod.width
         try:
-            yPix = int(self.entry_Ypix.get())
+            self.yPix = int(self.entry_Ypix.get())
         except:
-            yPix = self.img_pil_mod.height
+            self.yPix = self.img_pil_mod.height
         
         #Get exposure/ignore details and serial configurations
         cropping = self.entry_crop.get()
-        exposure_lines = self.exposure_details.get('1.0','end-1c').splitlines()
-        ignore_lines = self.ignore_details.get('1.0','end-1c').splitlines()
+        self.exposure_lines = self.exposure_details.get('1.0','end-1c').splitlines()
+        self.ignore_lines = self.ignore_details.get('1.0','end-1c').splitlines()
+        
+        #Store all the user data in a file
+        subjects = ['HologramWidth', 'Hologram Height', 'xPix', 'yPix', 'Cropping', 
+            'Exposure Lines', 'Ignore Lines']
+        datas = [self.hologram_width, self.hologram_height, self.xPix, self.yPix, 
+            cropping, self.exposure_details.get('1.0','end-1c'), self.ignore_details.get('1.0','end-1c')]
+        self.store_previous_data('Prior Experiment Data Single Image Creation.txt', subjects, datas)
+        
+        #Work with other methods to process user data
         try:
-            config_shutter = self.get_serial_config('Shutter')
-            config_motor = self.get_serial_config('Motor')
-        except:
+            self.config_shutter = self.get_serial_config('Shutter')
+            self.config_motor = self.get_serial_config('Motor')
+        except Exception as e:
+            message = 'Something went wrong with getting serial information.\n'
+            message += str(e)
+            self.text_communication.insert(tk.END, '\n' + message + '\n' + str(e) + '\n')
             return
         
         #Modify the image
         try:
-            self.modify_image(xPix, yPix, cropping)
-        except:
-            message = 'Something went wrong with the image modification process.'
-            self.error_window(self.root, message)
+            self.modify_image(self.xPix, self.yPix, cropping)
+        except Exception as e:
+            message = 'Something went wrong with the image modification process.\n'
+            message += str(e)
+            self.text_communication.insert(tk.END, '\n' + message + '\n' + str(e) + '\n')
             return
         
         #Convert the image into an array
         try:
-            img_as_arr = self.image_as_array(self.root, self.img_pil_mod, 'Modified Image')
-        except:
-            message = 'Something went wrong with turning the image into an array.'
-            self.error_window(self.root, message)
+            self.img_as_arr = self.image_as_array(self.root, self.img_pil_mod, 'Modified Image')
+        except Exception as e:
+            message = 'Something went wrong with turning the image into an array.\n'
+            message += str(e)
+            self.text_communication.insert(tk.END, '\n' + message + '\n' + str(e) + '\n')
             return
         
         #Generate exposure arrays based upon user's entry
         try:
-            exposure_arr = self.generate_exposure_details(exposure_lines, ignore_lines)
-        except:
-            message = 'Something went wrong with the exposure details.\nCheck your input'
-            self.error_window(self.root, message)
+            self.exposure_arr = self.generate_exposure_details(self.exposure_lines, self.ignore_lines)
+        except Exception as e:
+            message = 'Something went wrong with the exposure details.\nCheck your input.\n'
+            message += str(e)
+            self.text_communication.insert(tk.END, '\n' + message + '\n' + str(e) + '\n')
             return
         
         #Generate and print a time estimation
-        run_time = self.time_estimation(img_as_arr, exposure_arr, xPix, yPix, 
-                                        hologram_width, hologram_height)
+        run_time = self.time_estimation(self.img_as_arr, self.exposure_arr, self.xPix, 
+            self.yPix, self.hologram_width,self. hologram_height)
         exp = timedelta(seconds = run_time)
         self.label_end_time_est.configure(text='Estimated End Time: ' + 
                     (datetime.now() + exp).strftime('%H:%M:%S -- %d/%m/%Y'))
-        #Run the experiment
-        self.run_experiment(hologram_width, hologram_height, xPix, yPix, config_shutter, 
-                            config_motor, img_as_arr, exposure_arr)
         
     def modify_image(self, xPix, yPix, cropping):
         """
@@ -226,18 +257,18 @@ class SingleImageCreator(GenericImageCreator):
         """
         
         #Modify the image
-        self.img_pil_mod = imagework.convert_grey_downsize(self.file, xPix, yPix, True)
+        self.img_pil_mod = imagemodification.convert_grey_downsize(self.file, xPix, yPix, True)
         self.img_tk_mod = ImageTk.PhotoImage(self.img_pil_mod)
         if cropping.capitalize() != 'none'.capitalize() and cropping != '':
-            self.img_pil_mod = imagework.crop_image(cropping, self.img_pil_mod)
+            self.img_pil_mod = imagemodification.crop_image(cropping, self.img_pil_mod)
             self.img_tk_mod = ImageTk.PhotoImage(self.img_pil_mod)
         #The main window cannot handle images larger than 200x200
         if xPix > 200 and yPix <= 200:
-            img_temp = ImageTk.PhotoImage(imagework.convert_grey_downsize(self.file, newX=200, newY=yPix, convert=True))
+            img_temp = ImageTk.PhotoImage(imagemodification.convert_grey_downsize(self.file, newX=200, newY=yPix, convert=True))
         elif yPix > 200 and xPix <= 200:
-            img_temp = ImageTk.PhotoImage(imagework.convert_grey_downsize(self.file, newX=xPix, newY=200, convert=True))
+            img_temp = ImageTk.PhotoImage(imagemodification.convert_grey_downsize(self.file, newX=xPix, newY=200, convert=True))
         elif xPix > 200 and yPix > 200:
-            img_temp = ImageTk.PhotoImage(imagework.convert_grey_downsize(self.file, newX=xPix, newY=200, convert=True))
+            img_temp = ImageTk.PhotoImage(imagemodification.convert_grey_downsize(self.file, newX=xPix, newY=200, convert=True))
         else:
             img_temp = self.img_tk_mod
         #Update on screen
@@ -294,10 +325,8 @@ class SingleImageCreator(GenericImageCreator):
             (arg8) exposure_arr (list[int]) : mapping of pixel values to exposure time
         """
         
-        #Wait for the user to select run
-        while self.listbox.curselection != 0:
-            time.sleep(1)
-            
+        self.listbox.activate(0)
+        
         #Capture the screen?
             
         #Record the start time of the experiment and compute dot separation
@@ -306,13 +335,24 @@ class SingleImageCreator(GenericImageCreator):
         xDelta = 1.0 * hologram_width / xPix
         yDelta = 1.0 * hologram_height / yPix
         
-        #Movement
+        #Initialize the motor and shutter
         try:
-            #Initialize the shutter and motor
-            shutter = Shutter(config_shutter)
             motor = Motor(config_motor)
             motor.configureAxis(axis=1, velocity=1.0, acceleration=4, moveHome=True)
             motor.configureAxis(axis=2, velocity=1.0, acceleration=4, moveHome=True)
+        except Exception as e:
+            message = 'Something went wrong with setting up a connection with the motor.\n'
+            self.text_communication.insert(tk.END, '\n' + message + '\n' + str(e) + '\n')
+            return
+        try:
+            shutter = Shutter(config_shutter)
+        except Exception as e:
+            message = 'Something went wrong with setting up a connection with the shutter.\n'
+            self.text_communication.insert(tk.END, '\n' + message + '\n' + str(e) + '\n')
+            return
+            
+        #Movement and exposure procedure
+        try:
             #Read greyscale image, move as needed
             for i in range(0, yPix):
                 onRow = False #indicates the motor is already at a row
@@ -332,12 +372,14 @@ class SingleImageCreator(GenericImageCreator):
                         motor.moveAbsolute(axis=1, goToPos=j*xDelta*1000)
                         onRow = True
                         shutter.toggle_shutter(exposure_arr[cur_pix])
-        except:
-            print('An error has occured:')
+        except Exception as e:
+            message = 'Something went wrong with the motion and exposure process.\n'
+            self.text_communication.insert(tk.END, '\n' + message + '\n' + str(e) + '\n')
+            return
         finally:
             #Ensure all serial ports are closed ect
-            print('Closing the shutter and all serial ports')
-            shutter.ser.close()
+            message = 'Closing the serial port connections with the motor and shutter\n'
+            self.text_communication.insert(tk.END, '\n' + message + '\n')
             motor.ser.close()
             shutter.ser.close()
         

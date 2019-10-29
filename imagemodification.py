@@ -22,9 +22,9 @@ def convert_grey_downsize(image_file, newX=None, newY=None, convert=False):
         if(newX > image.width or newY > image.height):
             raise Exception
         image = image.resize((newX,newY))
+    print(image)
     if convert == True:
         image = image.convert('L')
-    print(image)
     return image
 
 def get_image_array(image):
