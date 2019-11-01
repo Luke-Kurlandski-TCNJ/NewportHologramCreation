@@ -47,6 +47,9 @@ class GenericImageCreator:
         self.root.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate+200, y_cordinate-40))
         self.root.title(window_title)
         
+        #Default maximum laser power
+        self.laser_maximum = 0.0
+    
     def set_up_frames(self, window, frames_horizontal, frames_vertical):
         """
         Create and orgainze a set of frames for any window.
@@ -159,19 +162,22 @@ class GenericImageCreator:
         array_window.configure(width=100, height=100)
         return img_as_arr
     
-    def generate_exposure_details(self, exposure, ignore):
+    def generate_exposure_details(self, exposure, ignore, laser, max_power):
         """
         Generate the arrays to describe laser exposure lengths.
         
         Arguments:
             (arg1) exposure (list[string]) : special strings containing exposure details
             (arg2) ignore (list[string]) : special strings containing ignore details
+            (arg3) laser (list[string]) : special string containing laser details
+            (arg4) max_power (float) : the maximum power the laser is capable of handling
             
         Return:
-            (ret) exposure_arr (list[int]) : mapping of pixel values to exposure time
+            (ret1) exposure_arr (list[int]) : mapping of pixel values to exposure time
+            (ret2) laser_arr (list[int]) : mapping of pixel values to laser intensity
         """
         
-        #Generate the exposure array
+        #Generate the exposure array and process exposure
         exposure_arr = []
         for i in range(0,256):
             exposure_arr.append(0)
@@ -189,7 +195,7 @@ class GenericImageCreator:
                 mlt_fctr = float(line[bracket+2:x])
                 for i in range(start,end):
                     exposure_arr[i] = mlt_fctr*i
-        #Override with 0s, for the ignore array
+        #Modify exposure array and process ignore
         for line in ignore:
             comma = line.find(',')
             bracket = line.find(']')
@@ -197,7 +203,31 @@ class GenericImageCreator:
             end = int(line[comma+1:bracket])
             for i in range(start,end):
                 exposure_arr[i] = 0
-        return exposure_arr
+        #Generate laser array and process laser
+        laser_arr = []
+        for i in range(0,256):
+            laser_arr.append(0)
+        for line in laser:
+            comma = line.find(',')
+            bracket = line.find(']')
+            start = int(line[1:comma])
+            end = int(line[comma+1:bracket])
+            x = line.find('x')
+            if x == -1:
+                expos_power = float(line[bracket+2:len(line)])
+                for i in range(start, end):
+                    laser_arr[i] = expos_power
+            else:
+                mlt_fctr = float(line[bracket+2:x])
+                for i in range(start,end):
+                    laser_arr[i] = mlt_fctr*i
+        #Ensure the laser array does not violate max_power, then return data
+        for i in laser_arr:
+            if i > max_power:
+                raise Exception('Tried to use a laser power greater than allowed which is, ' + str(max_power))
+        return exposure_arr, laser_arr
+        
+        
     
     def setup_serial_port(self, port_name):
         """
@@ -221,13 +251,13 @@ class GenericImageCreator:
             
             port = cb_port.get()
             baudrate = cb_baudrate.get()
-            bytesize = cb_bytesize.get()
-            stopbits = cb_stopbits.get()
-            parity = cb_parity.get()
             timeout = cb_timeout.get()
+            stopbits = cb_stopbits.get()
+            bytesize = cb_bytesize.get()
+            parity = cb_parity.get()
             #Creating a file for the serial port values
             file = open('Serial Port Congifurations ' + port_name + '.txt', 'w')
-            file.write(port + "\n" + baudrate + "\n" + bytesize + "\n" + stopbits + "\n" + parity + "\n" + timeout )
+            file.write(port + '\n' + baudrate + '\n' + timeout + '\n' + stopbits + '\n' + bytesize + '\n' + parity)
             file.close()
             serialport_window.destroy()
             
@@ -248,36 +278,36 @@ class GenericImageCreator:
         
         #Create labels for the port window
         tk.Label(serialport_window, text="Port:", font=('Arial', 12)).grid(row=0, column=0)
-        tk.Label(serialport_window, text="Baud rate:", font=('Arial', 12)).grid(row=1, column=0) 
-        tk.Label(serialport_window, text="Byte size:", font=('Arial', 12)).grid(row=2, column=0)
-        tk.Label(serialport_window, text="Stop bits:", font=('Arial', 12)).grid(row=3, column=0)
-        tk.Label(serialport_window, text="Parity:", font=('Arial', 12)).grid(row=4, column=0)
-        tk.Label(serialport_window, text="Timeout:", font=('Arial', 12)).grid(row=5, column=0) 
+        tk.Label(serialport_window, text="Baudrate:", font=('Arial', 12)).grid(row=1, column=0)
+        tk.Label(serialport_window, text="Timeout:", font=('Arial', 12)).grid(row=2, column=0) 
+        tk.Label(serialport_window, text="Stopbits:", font=('Arial', 12)).grid(row=3, column=0)
+        tk.Label(serialport_window, text="Bytesize:", font=('Arial', 12)).grid(row=4, column=0)
+        tk.Label(serialport_window, text="Parity:", font=('Arial', 12)).grid(row=5, column=0)
 
         #Construct the users choices for serial configurations
-        data_baudrate = ("75", "110", "134", "150", "300", "600", "1200", "1800", "2400", "4800", "7200", "9600", "14400", "19200", "38400", "57600", "115200", "128000")
-        data_bytesize = ("4", "5", "6", "7", "8")
-        data_stopbits = ("1", "1.5", "2")
-        data_parity = ("None", "Even", "Odd", "Space", "Mark")
-        data_timeout = ("0.1", "0.5", "1", "1.5", "2")
         data_port = []
         comlist = serial.tools.list_ports.comports()
         for i in comlist:
             data_port.append(i.device)
-            
+        data_baudrate = ("75", "110", "134", "150", "300", "600", "1200", "1800", "2400", "4800", "7200", "9600", "14400", "19200", "38400", "57600", "115200", "128000")
+        data_timeout = ("0.1", "0.5", "1", "1.5", "2")
+        data_stopbits = ("1", "1.5", "2")
+        data_bytesize = ("4", "5", "6", "7", "8")
+        data_parity = ("None", "Even", "Odd", "Space", "Mark")
+        
         #Create combo boxes for the user to select options from
         cb_port=ttk.Combobox(serialport_window, width = 12, font=('Arial', 12), values=data_port)
         cb_port.grid(row=0, column=1)
         cb_baudrate=ttk.Combobox(serialport_window, width = 12, font=('Arial', 12), values=data_baudrate)
         cb_baudrate.grid(row=1, column=1)
-        cb_bytesize=ttk.Combobox(serialport_window, width = 12, font=('Arial', 12), values=data_bytesize)
-        cb_bytesize.grid(row=2, column=1)
+        cb_timeout=ttk.Combobox(serialport_window, width = 12, font=('Arial', 12), values=data_timeout)
+        cb_timeout.grid(row=2, column=1)
         cb_stopbits=ttk.Combobox(serialport_window, width = 12, font=('Arial', 12), values=data_stopbits)
         cb_stopbits.grid(row=3, column=1)
+        cb_bytesize=ttk.Combobox(serialport_window, width = 12, font=('Arial', 12), values=data_bytesize)
+        cb_bytesize.grid(row=4, column=1)
         cb_parity=ttk.Combobox(serialport_window, width = 12, font=('Arial', 12), values=data_parity)
-        cb_parity.grid(row=4, column=1)
-        cb_timeout=ttk.Combobox(serialport_window, width = 12, font=('Arial', 12), values=data_timeout)
-        cb_timeout.grid(row=5, column=1)
+        cb_parity.grid(row=5, column=1)
         
         #Get the previous serial configurations from the file and print to combo boxes
         try: 
@@ -285,12 +315,14 @@ class GenericImageCreator:
             lines = file.readlines()
             cb_port.set(lines[0].rstrip())
             cb_baudrate.set(lines[1].rstrip())
-            cb_bytesize.set(lines[2].rstrip())
+            cb_timeout.set(lines[2].rstrip())
             cb_stopbits.set(lines[3].rstrip())
-            cb_parity.set(lines[4].rstrip())
-            cb_timeout.set(lines[5].rstrip())
-        except FileNotFoundError:
-            print('No previous serial data detected')
+            cb_bytesize.set(lines[4].rstrip())
+            cb_parity.set(lines[5].rstrip())
+        except FileNotFoundError as e:
+            message = '\nCannot find a previous instance of: \'Serial Port Congifurations ' + port_name + '.txt\''
+            message += str(e) 
+            self.text_communication.insert(tk.END, message)
             
         #Create a Save-Button in the serial port window
         save_button = tk.Button(serialport_window, text='Save', font=('Arial', 12), command=serial_save)
@@ -324,10 +356,10 @@ class GenericImageCreator:
         Returns:
             (ret1) port (int) : port number to appended to COM
             (ret2) baudrate : baudrate of the affiliated serial port
-            (ret3) bytesize : bytesize of the affiliated serial port
+            (ret3) timeout : timeout of the affiliated serial port
             (ret4) stopbits : stopbits of the affiliated serial port
-            (ret5) parity : parity of the affiliated serial port
-            (ret6) timeout : timeout of the affiliated serial port
+            (ret5) bytesize : bytesize of the affiliated serial port
+            (ret6) parity : parity of the affiliated serial port
         """
         
         #Read the file and read the data line by line
@@ -335,17 +367,17 @@ class GenericImageCreator:
             file = open('Serial Port Congifurations ' + port_name + '.txt', "r")
             lines = file.readlines() 
             port = lines[0].rstrip() 
-            baudrate = int(lines[1]) 
-            bytesize = int(lines[2])
-            stopbits = float(lines[3])
-            parity = lines[4].rstrip()
-            timeout = float(lines[5])
+            baudrate = int(lines[1].rstrip()) 
+            timeout = float(lines[2].rstrip())
+            stopbits = float(lines[3].rstrip())
+            bytesize = int(lines[4].rstrip())
+            parity = lines[5].rstrip()
             file.close()
             return (port, baudrate, timeout, stopbits, bytesize, parity)
         except FileNotFoundError:
-            message = 'You have not specified any serial port information for the ' 
-            + port_name + '.\n There is no record of information from a prior experiment.'
-            self.error_window(self.root, message)
+            message = '\nYou have not specified any serial port information for the ' 
+            + port_name + ' and there is no record of information from a prior experiment.\n'
+            self.text_communication(tk.END, message)
             raise
     
     def error_window(self, window, message):
@@ -378,19 +410,50 @@ class GenericImageCreator:
             (ret1) help_window (tk.Toplevel) : the help window
         """
         
-        help_window = self.pop_up_window(window, 'Help', window_height, window_width, resizable = True)
         try:
             file = open('Help ' + subject + '.txt', 'r')
-        except:
-            print('Not found')
-            tk.Label(help_window, text = 'Nothing to help you with at the moment').pack()
+        except FileNotFoundError as e:
+            message = '\nThe help document ' + subject + ' cannot be found.\n'
+            message+= str(e) + '\n'
+            self.text_communication.insert(tk.END, message)
             return
+        help_window = self.pop_up_window(window, 'Help', window_height, window_width, resizable = True)
         text = tk.Text(help_window, width=95, height=22)
         text.grid()
         text.insert(tk.INSERT, file.read())
         self.apply_scrollbars(help_window, text, True, True)
         file.close()
         return help_window
+    
+    def laser_settings(self, previous=0):
+        """
+        Sets the maximum power allowed by a laser to user-define value.
+        
+        Notes:
+            Currently overwrites the value incomming as argument
+            Possibly change to a file-store method, especially if more features added
+        
+        Arguments:
+            (arg1) previous (float) : the maximum power from previous experiment, overwritten
+        """
+        #FIXME: replace with a file saving method
+        def laser_save():
+            """
+            Saves the laser settings.
+            """
+            
+            self.laser_maximum = float(entry_power.get())
+            window.destroy()
+            
+        window = self.pop_up_window(self.root, 'Laser Settings', 100, 150)
+        self.set_up_menu(window)
+        tk.Label(window, text = 'Laser Power:').grid(row=0, column=0)
+        entry_power = tk.Entry(window, width=10)
+        entry_power.grid(row=0, column=1, sticky = tk.W)
+        entry_power.insert(0, previous)
+        tk.Label(window, text = 'Using incorrect settings\ncould destroy the laser.').grid(row=1, column=0, columnspan=2)
+        button_save = tk.Button(window, text = 'These are the\n Correct Settings', command = laser_save)
+        button_save.grid(row=2, column=0, columnspan=2)
     
     def pop_up_window(self, window, title='Message', window_height=150, window_width=200, resizable = True, x_move=0, y_move=0):
         """

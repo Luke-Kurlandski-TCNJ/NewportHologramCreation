@@ -68,13 +68,6 @@ class Shutter(Control):
     '''
     Class to control shutter. Derives from Control class.
     '''
-    
-    def __init__(self, port, baudrate=9600, timeout=.1, stopbits=1, bytesize=8):
-        '''
-        Contructor calls parent.
-        '''
-        
-        super().__init__(port, baudrate, timeout, stopbits, bytesize)
             
     def toggle_shutter(self, pause):
         '''
@@ -90,15 +83,8 @@ class Shutter(Control):
 
 class Motor(Control):
     '''
-    Class to control the motot. Derives from Control class.
+    Class to control the motor. Derives from Control class.
     '''
-    
-    def __init__(self, port, baudrate=19200, timeout=.1, stopbits=1, bytesize=8):
-        '''
-        Contructor calls parent.
-        '''
-        
-        super().__init__(port, baudrate, timeout, stopbits, bytesize)
         
     def moveAbsolute(self, axis, goToPos, delay=0):
         '''
@@ -164,6 +150,70 @@ class Motor(Control):
         if moveHome==True:
             self.writeCommand(strAxis + 'OR0')  #OR0,OR1,OR2...?
             self.waitMotionDone(axis)
+
+class Laser(Control):
+    """
+    Class to control the laser, derived from Control class.
+    """
+    
+    def __init__(self, port, baudrate, timeout, stopbits, bytesize, max_power):
+        """
+        Construct a laser object.
+        """
+        
+        super().__init__(port, baudrate, timeout, stopbits, bytesize)
+        self.max_power = max_power
+    
+    def get_head_ID(self):
+        """
+        Get the head ID from connected laser.
+        """
+        
+        self.writeCommand('?HID')
+        head_ID = self.ser.read(30)
+        byte_head_ID = head_ID[6:15]
+        if float(byte_head_ID) != 42185.000: #HID number
+            raise Exception('DANGER: attempting to use laser configurations with laser that' +
+                'does not have a compatable Head ID! STOP IMMEDIETLY or you will destroy the laser')
+            
+    def read_power(self):
+        """
+        Read power from laser.
+        """
+        
+        self.ser.write('?P\r'.encode())
+        str_power = str(self.ser.read(30))
+        float_power = float(str_power[8:12])
+        #If the laser is on, make inactive
+        if float_power >= 0.4:
+            self.writeCommand('L=0')
+        #If the laser is not on (or booting up), ensure it is inactive
+        else:
+            for i in range(0, 450):
+                self.writeCommand('L=0')
+                time.sleep(.1)
+                
+    def turn_on_off(self, on_off):
+        """
+        Turn the laser on or off.
+        """
+        
+        if on_off:
+            self.writeCommand('L=1')
+        if not on_off:
+            self.writeCommand('L=0')
+            
+    def change_power(self, new_power):
+        """
+        Change the power of the laser.
+        """
+        
+        if new_power < self.max_power:
+            self.writeCommand('P='+str(new_power))
+        else:
+            raise Exception('Trying to set laser to an invalid power. The maximum power is: ' + str(self.max_power))
+        
+    
 
 def test():
     '''

@@ -8,14 +8,18 @@ Created on Mon Oct 14 11:39:14 2019
 from PIL import Image #package to support image work
 
 def convert_grey_downsize(image_file, newX=None, newY=None, convert=False):
-    '''
-    Converts and optionall downsizes an image
-    (arg1) image_file : file path of the incomming image (string)
-    (arg2) new X : new size in the x direction (int)
-    (arg3) newY : new size in the y direction (int)
-    (arg4) convert : determines whether or not to convert the image (boolean)
-    (return) image : new image (PIL image)
-    '''
+    """
+    Convert and downsize and image; both are optional. 
+    
+    Arguments:
+        (arg1) image_file (string) : file path of the incomming image
+        (arg2) newX (int) : new size in the x direction
+        (arg3) newY (int) : new size in the y direction
+        (arg4) convert (boolean) : determines whether or not to convert the image
+        
+    Returns:
+        (ret1) image (PIL image) : modified image
+    """
     
     image = Image.open(image_file)
     if(newX != None and newY != None):
@@ -28,28 +32,39 @@ def convert_grey_downsize(image_file, newX=None, newY=None, convert=False):
     return image
 
 def get_image_array(image):
-    '''
-    Recieves an image, outputs the array representation
-    (arg1) image : image to convert (PIL image)
-    (return) pixelMatrix : array representation (list)
-    FIXME: possibly transposes the matrix unintentionally
-    '''
+    """
+    Convert image into an array.
     
-    pixelMatrix = []
-    for i in range(image.width): #possibly replace with image.height
+    Arguments:
+        (arg1) image (PIL image) : image to convert into an array
+        
+    Returns:
+        (ret1) arr (list[list[int]]) : array representation of the image
+    """
+    
+    arr = []
+    for i in range(image.width): 
         temp = []
-        pixelMatrix.append(temp)
-        for j in range(image.height): #possibly replace with image.width
+        arr.append(temp)
+        for j in range(image.height): 
             temp.append(image.getpixel((i,j)))
-    return pixelMatrix
+    return arr
 
-def crop_image(dimentions,image):
-    '''
-    Recieves an image and dimensions,
-    outputs a new image cropped to new dimenstions
-    (arg1) dimentions : string entered as "(x1,y1),(x2,y2)" == (topLeft),(bottomRight)
-    (arg2) image : image to be cropped (PIL image)
-    '''
+def crop_image(dimentions, image):
+    """
+    Crops an image according to specifications.
+    
+    Notes:
+        Crops a rectangle of the image between a top left point and a bottom right point
+    
+    Arguments:
+        (arg1) dimentions (string) : '(x1,y1),(x2,y2)' == (bottom right),(top left)
+        (arg2) image (PIL image) : image to crop
+        
+    Returns:
+        (ret1) new_image (PIL image) : the new, cropped image
+    """
+    
     # splices the dimenstions string to extract coordinates as integers
     x1 = int(dimentions[1:dimentions.find(",")])
     y1 = int(dimentions[dimentions.find(",")+1:dimentions.find(")")])
@@ -60,23 +75,19 @@ def crop_image(dimentions,image):
     # x and y conditions check to make coordinates entered are with in bounds
     # order condition checks if (x1,y1) is less than (y1,y2)
     width, height = image.size
-    print(image.size)
     x_condition = x1 > 0 and x1 < width and x2 > 0 and x2 < width
     y_condition = y1 > 0 and y1 < width and y2 > 0 and y2 < width
     order_condition = x1 < x2 and y1 < y2
-
     #if conditions are true returns new cropped image
-    #otherwise returns issue with dimentions string
     if x_condition and y_condition and order_condition:
         new_image = image.crop((x1,y1,x2,y2))
-        new_image.show()
+        #new_image.show()
         return new_image
     elif not order_condition:
-        print("The dimentions entered are out of order")
+        raise Exception('The cropping dimentions are not in the correct order')
     else:
-        print("The dimentions entered are not with-in the bounds of the image")
+        raise Exception('The cropping dimentions outside the size of the image')
     return image
-
 
 def test():
     '''

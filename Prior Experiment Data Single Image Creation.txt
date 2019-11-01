@@ -3,24 +3,16 @@ HologramWidth
 Hologram Height
 0.02
 xPix
--101
+200
 yPix
-101
+200
 Cropping
-NONE
+(50,50),(100,100)
+Laser Maximum Power
+3.0
 Exposure Lines
-[0,50]:9
-[50,100]:1
-[100,150]:7
-[150,200]:2
-[200,255]:0
-
-
+[0,1]:1
 Ignore Lines
-[0,50]:6
-[50,100]:1.5
-[100,150]:2
-[150,200]:2.5
-[200,255]:99
-
-
+[0,1]:2
+Laser Lines
+[0,1]:3

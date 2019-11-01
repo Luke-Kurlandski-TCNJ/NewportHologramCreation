@@ -42,8 +42,10 @@ class SingleImageCreator(GenericImageCreator):
         
         #Set up main menu
         self.menu = self.set_up_menu(self.root)
-        self.menu.add_command(label='Motor Serial', command=lambda: self.setup_serial_port('Motor'))
-        self.menu.add_command(label='Shutter Serial', command=lambda: self.setup_serial_port('Shutter'))
+        self.menu.add_command(label='Serial Motor', command=lambda: self.setup_serial_port('Motor'))
+        self.menu.add_command(label='Serial Shutter', command=lambda: self.setup_serial_port('Shutter'))
+        self.menu.add_command(label='Serial Laser', command=lambda: self.setup_serial_port('Laser'))
+        self.menu.add_command(label='Laser Settings', command=lambda: self.laser_settings(self.laser_maximum))
         submenu_help = tk.Menu(self.menu)
         self.menu.add_cascade(label='Help', menu=submenu_help)
         submenu_help.add_command(label='General Instructions', command=lambda: self.help_window(self.root, 'General Instructions'))
@@ -77,7 +79,7 @@ class SingleImageCreator(GenericImageCreator):
         self.entry_Ypix = tk.Entry(self.frames[2][0], width = 10)
         self.entry_Ypix.pack()
         tk.Label(self.frames[2][0],text='Optional Cropping').pack()
-        self.entry_crop = tk.Entry(self.frames[2][0], width = 10)
+        self.entry_crop = tk.Entry(self.frames[2][0], width = 15)
         self.entry_crop.pack()
         
         #Set up Default Images
@@ -97,28 +99,37 @@ class SingleImageCreator(GenericImageCreator):
         
         #Set up Exposure Information
         tk.Label(self.frames[0][2], text='4) Exposure Information', font="bold").pack()
+        #Exposure Details
         sub_frame_1 = tk.Frame(self.frames[0][2])
         sub_frame_1.pack()
-        sub_frame_2 = tk.Frame(self.frames[0][2])
-        sub_frame_2.pack()
         tk.Label(sub_frame_1, text='Exposure Details').grid(row=0, column=0)
-        self.exposure_details = tk.Text(sub_frame_1, width=20, height=15)
+        self.exposure_details = tk.Text(sub_frame_1, width=20, height=10)
         self.exposure_details.grid(row=1, column=0)
         self.apply_scrollbars(sub_frame_1, self.exposure_details, x=True, y=True, yrow=1, ycol=1, xrow=2, xcol=0)
+        #Ignore Details
+        sub_frame_2 = tk.Frame(self.frames[0][2])
+        sub_frame_2.pack()
         tk.Label(sub_frame_2, text='Ignore Details').grid(row=0, column=0)
-        self.ignore_details = tk.Text(sub_frame_2, width=20, height=15)
+        self.ignore_details = tk.Text(sub_frame_2, width=20, height=10)
         self.ignore_details.grid(row=1, column=0)
         self.apply_scrollbars(sub_frame_2, self.ignore_details, x=True, y=True, yrow=1, ycol=1, xrow=2, xcol=0)
+        #Laser Details
+        sub_frame_3 = tk.Frame(self.frames[0][2])
+        sub_frame_3.pack()
+        tk.Label(sub_frame_3, text='Laser Power').grid(row=0, column=0)
+        self.laser_details = tk.Text(sub_frame_3, width=20, height=10)
+        self.laser_details.grid(row=1, column=0)
+        self.apply_scrollbars(sub_frame_3, self.laser_details, x=True, y=True, yrow=1, ycol=1, xrow=2, xcol=0)
         
         #Set up Initialize Experiment
         tk.Label(self.frames[3][0], text='5) Initialize Experiment', font="bold").pack()
         self.button_update = tk.Button(self.frames[3][0], text = 'Update all Information', command=self.get_data)
         self.button_update.pack()
-        self.button_update = tk.Button(self.frames[3][0], text = 'Run Experiment', 
+        self.button_run = tk.Button(self.frames[3][0], text = 'Run Experiment', 
             command=lambda: self.run_experiment(self.hologram_width, self.hologram_height, 
-                self.xPix, self.yPix, self.config_shutter, self.config_motor, self.img_as_arr, 
-                    self.exposure_arr))
-        self.button_update.pack()
+                self.xPix, self.yPix, self.config_shutter, self.config_motor, 
+                    self.config_laser, self.img_as_arr, self.exposure_arr, self.laser_arr))
+        self.button_run.pack()
         
         #Set up Running Experiment
         tk.Label(self.frames[4][0], text='6) Running Experiment', font="bold").pack()
@@ -139,37 +150,46 @@ class SingleImageCreator(GenericImageCreator):
         self.label_position = tk.Label(self.frames[4][0], text='Current Pixel (x,y): (x,y)')
         self.label_position.pack() 
         
+        #FIXME: get previous laser data
         #Fill with values from previous experiment
+        self.text_communication.insert(tk.END, 'Retrieving previous experiment data.\n')
         with open('Prior Experiment Data Single Image Creation.txt', 'r') as file:
             try:
                 lines = file.readlines()
-                print(lines)
                 self.entry_width.insert(1, lines[1].rstrip())
                 self.entry_height.insert(1, lines[3].rstrip())
                 self.entry_Xpix.insert(1, lines[5].rstrip())
                 self.entry_Ypix.insert(1, lines[7].rstrip())
                 self.entry_crop.insert(1, lines[9].rstrip())
-                cont = 11
-                for i in range(11, lines.index('Ignore Lines\n')):
+                self.laser_maximum = float(lines[11].rstrip())
+                cont = 13
+                for i in range(13, lines.index('Ignore Lines\n')):
                     self.exposure_details.insert(tk.END, lines[i].rstrip() + '\n')
                     cont = i
+                for i in range(cont+2, lines.index('Laser Lines\n')):
+                    self.ignore_details.insert(tk.END, lines[i].rstrip() + '\n')
+                    cont = i
                 for j in range(cont+2, len(lines)):
-                    self.ignore_details.insert(tk.END, lines[j].rstrip() + '\n')
-            except:
-                print('Something is wrong with the \'Prior Experiment Data Single Image Creation.txt\' file')
+                    self.laser_details.insert(tk.END, lines[j].rstrip() + '\n') 
+            except Exception as e:
+                error_message = 'Something went wrong with retrieving data from the previous experiment.'
+                error_message += '\t' + str(e) + '\n'
+                self.text_communication.insert(tk.END, error_message)                
     
+    #FIXME: add to parent class. args: image label; modifes image and prints to label
     def image_select(self):
         """
         Get image from user, downsize automatically, and display.
         """
         
+        self.text_communication.insert(tk.END, 'Finding and storing your image.\n')
         self.file = filedialog.askopenfilename()
         self.img_pil = imagemodification.convert_grey_downsize(self.file, newX=None, newY=None, convert=False)
         self.img_tk = ImageTk.PhotoImage(imagemodification.convert_grey_downsize(self.file, newX=200, newY=200, convert=False))
         self.label_img.configure(image=self.img_tk)
         self.label_img_lbl.configure(text='Original Image')
-        self.text_communication.insert(tk.END, 'Your image is: ' + str(self.file) + '\n')
-    
+        
+    #FIXME: implement one try-catch statement and modify the error string as execution flows
     def get_data(self):
         """
         Gets data from main window and drives next processes in program.
@@ -178,73 +198,72 @@ class SingleImageCreator(GenericImageCreator):
             Provides basic feedback to user if processes go wrong.
         """
         
-        #Get hologram size, image modifcations
-        self.hologram_width = float(self.entry_width.get())
-        self.hologram_height = float(self.entry_height.get())
-        try: 
-            self.xPix = int(self.entry_Xpix.get())
-        except:
-            self.xPix = self.img_pil_mod.width
         try:
-            self.yPix = int(self.entry_Ypix.get())
-        except:
-            self.yPix = self.img_pil_mod.height
-        
-        #Get exposure/ignore details and serial configurations
-        cropping = self.entry_crop.get()
-        self.exposure_lines = self.exposure_details.get('1.0','end-1c').splitlines()
-        self.ignore_lines = self.ignore_details.get('1.0','end-1c').splitlines()
-        
-        #Store all the user data in a file
-        subjects = ['HologramWidth', 'Hologram Height', 'xPix', 'yPix', 'Cropping', 
-            'Exposure Lines', 'Ignore Lines']
-        datas = [self.hologram_width, self.hologram_height, self.xPix, self.yPix, 
-            cropping, self.exposure_details.get('1.0','end-1c'), self.ignore_details.get('1.0','end-1c')]
-        self.store_previous_data('Prior Experiment Data Single Image Creation.txt', subjects, datas)
-        
-        #Work with other methods to process user data
-        try:
+            self.text_communication.insert(tk.END, 'Getting all raw user data from main window.\n')
+            #Get hologram size, image modifcations, and maximum laser power
+            error_message = 'Something went wrong getting the hologram width/height.'
+            self.hologram_width = float(self.entry_width.get())
+            self.hologram_height = float(self.entry_height.get())
+            error_message = 'Something went wrong getting the hologram horizontal/vertical pixels.'
+            if type(self.entry_Xpix.get()) is int:
+                self.xPix = int(self.entry_Xpix.get())
+            else:
+                self.xPix = self.img_pil_mod.width
+            if type(self.entry_Ypix.get()) is int:
+                self.yPix = int(self.entry_Ypix.get())
+            else:
+                self.yPix = self.img_pil_mod.height
+            print('Size' + str(self.xPix) + str(self.yPix))
+            error_message = 'Something went wrong getting the cropping information.'
+            cropping = self.entry_crop.get()
+            
+            #Get exposure/ignore/laser details
+            error_message = 'Something went wrong acquiring the unprocessed exposure, ignore, and/or laser details.'
+            self.exposure_lines = self.exposure_details.get('1.0','end-1c').rstrip().splitlines()
+            self.ignore_lines = self.ignore_details.get('1.0','end-1c').rstrip().splitlines()
+            self.laser_lines = self.laser_details.get('1.0','end-1c').rstrip().splitlines()
+            
+            #Store all the user data in a file
+            self.text_communication.insert(tk.END, 'Storing all raw data in a file for the next experiment.\n')
+            error_message = 'Something went wrong storing your input into a file.'
+            subjects = ['HologramWidth', 'Hologram Height', 'xPix', 'yPix', 'Cropping', 'Laser Maximum Power', 'Exposure Lines', 'Ignore Lines', 'Laser Lines']
+            datas = [self.hologram_width, self.hologram_height, self.xPix, self.yPix, cropping, self.laser_maximum, self.exposure_details.get('1.0','end-1c').rstrip(), self.ignore_details.get('1.0','end-1c').rstrip(), self.laser_details.get('1.0','end-1c').rstrip()]
+            self.store_previous_data('Prior Experiment Data Single Image Creation.txt', subjects, datas)
+            
+            #Process exposure/ignore/laser details
+            self.text_communication.insert(tk.END, 'Processing the exposure, ignore, and laser details.\n')
+            error_message = 'Something went wrong processing the exposure, ignore, and/or laser details.'
+            self.exposure_arr, self.laser_arr = self.generate_exposure_details(self.exposure_lines, self.ignore_lines, self.laser_lines, self.laser_maximum)
+            
+            #Configure the Serial Ports
+            self.text_communication.insert(tk.END, 'Retrieving serial port configurations from file.\n')
+            error_message = 'Something went wrong getting previous configurations for the Shutter.'
             self.config_shutter = self.get_serial_config('Shutter')
+            error_message = 'Something went wrong getting previous configurations for the Motor.'
             self.config_motor = self.get_serial_config('Motor')
-        except Exception as e:
-            message = 'Something went wrong with getting serial information.\n'
-            message += str(e)
-            self.text_communication.insert(tk.END, '\n' + message + '\n' + str(e) + '\n')
-            return
-        
-        #Modify the image
-        try:
+            error_message = 'Something went wrong getting previous configurations for the Laser.'
+            self.config_laser = self.get_serial_config('Laser')
+            
+            #Modify the image, convert into an array
+            self.text_communication.insert(tk.END, 'Modifying the image and processing into an array.\n')
+            error_message = 'Something went wrong while modifying the image.'
             self.modify_image(self.xPix, self.yPix, cropping)
-        except Exception as e:
-            message = 'Something went wrong with the image modification process.\n'
-            message += str(e)
-            self.text_communication.insert(tk.END, '\n' + message + '\n' + str(e) + '\n')
-            return
-        
-        #Convert the image into an array
-        try:
+            error_message = 'Something went wrong while processing the image into an array.'
             self.img_as_arr = self.image_as_array(self.root, self.img_pil_mod, 'Modified Image')
+            
+            #Generate runtime estimation and display on main window
+            self.text_communication.insert(tk.END, 'Generating a run-time estimation.\n')
+            error_message = 'Something went wrong while generating a run-time estimation.'
+            run_time = self.time_estimation(self.img_as_arr, self.exposure_arr, self.xPix, self.yPix, self.hologram_width, self.hologram_height)
+            exp = timedelta(seconds = run_time)
+            self.label_end_time_est.configure(text='Estimated End Time: ' + (datetime.now() + exp).strftime('%H:%M:%S -- %d/%m/%Y'))
+            error_message = 'All data processed correctly.'
+            
         except Exception as e:
-            message = 'Something went wrong with turning the image into an array.\n'
-            message += str(e)
-            self.text_communication.insert(tk.END, '\n' + message + '\n' + str(e) + '\n')
+            error_message += '\n\t' + str(e) + '\n'
             return
-        
-        #Generate exposure arrays based upon user's entry
-        try:
-            self.exposure_arr = self.generate_exposure_details(self.exposure_lines, self.ignore_lines)
-        except Exception as e:
-            message = 'Something went wrong with the exposure details.\nCheck your input.\n'
-            message += str(e)
-            self.text_communication.insert(tk.END, '\n' + message + '\n' + str(e) + '\n')
-            return
-        
-        #Generate and print a time estimation
-        run_time = self.time_estimation(self.img_as_arr, self.exposure_arr, self.xPix, 
-            self.yPix, self.hologram_width,self. hologram_height)
-        exp = timedelta(seconds = run_time)
-        self.label_end_time_est.configure(text='Estimated End Time: ' + 
-                    (datetime.now() + exp).strftime('%H:%M:%S -- %d/%m/%Y'))
+        finally:
+            self.text_communication.insert(tk.END, error_message)
         
     def modify_image(self, xPix, yPix, cropping):
         """
@@ -260,8 +279,12 @@ class SingleImageCreator(GenericImageCreator):
         self.img_pil_mod = imagemodification.convert_grey_downsize(self.file, xPix, yPix, True)
         self.img_tk_mod = ImageTk.PhotoImage(self.img_pil_mod)
         if cropping.capitalize() != 'none'.capitalize() and cropping != '':
-            self.img_pil_mod = imagemodification.crop_image(cropping, self.img_pil_mod)
-            self.img_tk_mod = ImageTk.PhotoImage(self.img_pil_mod)
+            try:
+                self.img_pil_mod = imagemodification.crop_image(cropping, self.img_pil_mod)
+                self.img_tk_mod = ImageTk.PhotoImage(self.img_pil_mod)
+            except Exception as e:
+                raise e
+            
         #The main window cannot handle images larger than 200x200
         if xPix > 200 and yPix <= 200:
             img_temp = ImageTk.PhotoImage(imagemodification.convert_grey_downsize(self.file, newX=200, newY=yPix, convert=True))
@@ -271,6 +294,7 @@ class SingleImageCreator(GenericImageCreator):
             img_temp = ImageTk.PhotoImage(imagemodification.convert_grey_downsize(self.file, newX=xPix, newY=200, convert=True))
         else:
             img_temp = self.img_tk_mod
+            
         #Update on screen
         self.label_img_mod.configure(image=img_temp)
         self.label_img_lbl_mod.configure(text='Modified Image')
@@ -310,7 +334,8 @@ class SingleImageCreator(GenericImageCreator):
         run_time += hologram_height / .001
         return run_time
     
-    def run_experiment(self, hologram_width, hologram_height, xPix, yPix, config_shutter, config_motor, img_as_arr, exposure_arr):
+    def run_experiment(self, hologram_width, hologram_height, xPix, yPix, config_shutter, 
+                       config_motor, config_laser, img_as_arr, exposure_arr, laser_arr):
         """
         Run the experiment by moving the motor and opening and closing the shutter.
         
@@ -321,8 +346,10 @@ class SingleImageCreator(GenericImageCreator):
             (arg4) yPix (int) : number of pixels in vertical direction
             (arg5) config_shutter (tuple) : serial configurations for the shutter
             (arg6) config_motor (tuple) : serial configurations for the motor
-            (arg7) img_as_arr (list[list[int]]) : the image converted into an array
-            (arg8) exposure_arr (list[int]) : mapping of pixel values to exposure time
+            (arg7) config_laser (tuple) : serial configurations for the shutter
+            (arg8) img_as_arr (list[list[int]]) : the image converted into an array
+            (arg9) exposure_arr (list[float]) : mapping of pixel values to exposure time
+            (arg10) laser_arr (list[float]) : mapping of pixel values to laser power
         """
         
         self.listbox.activate(0)
@@ -335,21 +362,29 @@ class SingleImageCreator(GenericImageCreator):
         xDelta = 1.0 * hologram_width / xPix
         yDelta = 1.0 * hologram_height / yPix
         
-        #Initialize the motor and shutter
+        #Initialize the motor with an alternative constructor
         try:
-            motor = Motor(config_motor)
+            motor = Motor.from_arguments(config_motor)
             motor.configureAxis(axis=1, velocity=1.0, acceleration=4, moveHome=True)
             motor.configureAxis(axis=2, velocity=1.0, acceleration=4, moveHome=True)
+            message = '\nEstablished a serial connection with motor\n'
         except Exception as e:
-            message = 'Something went wrong with setting up a connection with the motor.\n'
-            self.text_communication.insert(tk.END, '\n' + message + '\n' + str(e) + '\n')
+            message = '\nSomething went wrong with setting up a connection with the motor.\n'
+            message += str(e) + '\n'
             return
+        finally:
+            self.text_communication.insert(tk.END, message)
+            
+        #Initialize the shutter with an alternative constructor
         try:
             shutter = Shutter(config_shutter)
+            message = '\nEstablished a serial connection with shutter\n'
         except Exception as e:
-            message = 'Something went wrong with setting up a connection with the shutter.\n'
-            self.text_communication.insert(tk.END, '\n' + message + '\n' + str(e) + '\n')
+            message = '\nSomething went wrong with setting up a connection with the shutter.\n'
+            message += str(e) + '\n'
             return
+        finally:
+            self.text_communication.insert(tk.END, message)
             
         #Movement and exposure procedure
         try:
@@ -373,13 +408,14 @@ class SingleImageCreator(GenericImageCreator):
                         onRow = True
                         shutter.toggle_shutter(exposure_arr[cur_pix])
         except Exception as e:
-            message = 'Something went wrong with the motion and exposure process.\n'
-            self.text_communication.insert(tk.END, '\n' + message + '\n' + str(e) + '\n')
+            message = '\nSomething went wrong with the motion and exposure process.\n'
+            message += str(e) + '\n' 
+            self.text_communication.insert(tk.END, message)
             return
         finally:
             #Ensure all serial ports are closed ect
-            message = 'Closing the serial port connections with the motor and shutter\n'
-            self.text_communication.insert(tk.END, '\n' + message + '\n')
+            message = '\nClosing the serial port connections with the motor and shutter\n'
+            self.text_communication.insert(tk.END, message)
             motor.ser.close()
             shutter.ser.close()
         
