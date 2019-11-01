@@ -1,0 +1,5 @@
+Image Modification
+@author Luke Kurlandski
+October 26, 2019
+
+This information specificaly concerns the Image Modification.
