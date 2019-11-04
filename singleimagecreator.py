@@ -1,21 +1,52 @@
 # -*- coding: utf-8 -*-
 """
-Master GUI class
+Create a single image upon a hologram.
 
 Created on 9/22/19
+Updated on 11/1/19
 
 @author: Luke Kurlandski
+
+SingleImageCreator is designed to provide a simple, user interface to facilitate
+the creation of single-image holograms upon a film. This program inherits from
+GenericImageCreator. 
+
+The program functions as follows:
+    
+    1) determine the size of the hologram to create;
+    2) modify an image according to user specifications and convert into an
+        array of pixel values for each pixel in the image;
+    3) process user input to determine how long and at what power level to expose
+        each particular pixel value;
+    4) control the motor, shutter, and laser to create the image upon the film.
+    
+The program is not a masterpiece. Functionality is more important than perfection.
+Luke Kurlandski wrote this program with his focus on creating beautiful holograms,
+not beautiful code.
+
+Any and all modifications to this program in the future should be performed upon
+a copy. This version should at no time ever be modified by anyone other than Luke
+Kurlandski. 
+
+This program was written by Luke Kurlandski and is his intellectual property. 
+Dr. David McGee, The College of New Jersey Physics Department, has unlimited access 
+to this program.
 """
 
-import tkinter as tk #GUI library
-from tkinter import filedialog #file selection of image
-from PIL import ImageTk #Pil and Tk image compatability
-from datetime import datetime #Assist with displaying run time
-from datetime import timedelta #Assist with displaying run time
-import time #Assist with pausing and waiting
-import imagemodification #package to support image modification
-from serialcontrol import Motor, Shutter #Allows communication with machinery
-from generichologramcreator import GenericImageCreator #Parent Class
+#Graphical User Interface tools
+import tkinter as tk 
+from tkinter import filedialog 
+from PIL import ImageTk 
+
+#Experiment timing tools
+from datetime import datetime 
+from datetime import timedelta 
+import time 
+
+#My own programs
+import imagemodification
+from serialcontrol import Motor, Shutter, Laser
+from generichologramcreator import GenericImageCreator
 
 class SingleImageCreator(GenericImageCreator):
     """
@@ -41,11 +72,22 @@ class SingleImageCreator(GenericImageCreator):
         self.frames[0][2].grid(row=0, column=2, pady=10, rowspan=200, columnspan=200, sticky='NW', padx=250)
         
         #Set up main menu
-        self.menu = self.set_up_menu(self.root)
-        self.menu.add_command(label='Serial Motor', command=lambda: self.setup_serial_port('Motor'))
-        self.menu.add_command(label='Serial Shutter', command=lambda: self.setup_serial_port('Shutter'))
-        self.menu.add_command(label='Serial Laser', command=lambda: self.setup_serial_port('Laser'))
-        self.menu.add_command(label='Laser Settings', command=lambda: self.laser_settings(self.laser_maximum))
+        self.menu = tk.Menu(self.root)
+        self.root.config(menu = self.menu)
+        #File Menu
+        submenu_file = tk.Menu(self.menu)
+        self.menu.add_cascade(label='File', menu=submenu_file)
+        submenu_file.add_command(label='Quit', command=self.root.destroy)
+        submenu_file.add_command(label='Save', command=self.save_experiment)
+        submenu_file.add_command(label='Open', command=self.open_experiment)
+        #Serial Menu
+        submenu_serial = tk.Menu(self.menu)
+        self.menu.add_cascade(label='Serial Configurations', menu=submenu_serial)
+        submenu_serial.add_command(label='Serial Motor', command=lambda: self.setup_serial_port('Motor'))
+        submenu_serial.add_command(label='Serial Shutter', command=lambda: self.setup_serial_port('Shutter'))
+        submenu_serial.add_command(label='Serial Laser', command=lambda: self.setup_serial_port('Laser'))
+        submenu_serial.add_command(label='Laser Settings', command=self.laser_settings)
+        #Help Menu
         submenu_help = tk.Menu(self.menu)
         self.menu.add_cascade(label='Help', menu=submenu_help)
         submenu_help.add_command(label='General Instructions', command=lambda: self.help_window(self.root, 'General Instructions'))
@@ -125,10 +167,7 @@ class SingleImageCreator(GenericImageCreator):
         tk.Label(self.frames[3][0], text='5) Initialize Experiment', font="bold").pack()
         self.button_update = tk.Button(self.frames[3][0], text = 'Update all Information', command=self.get_data)
         self.button_update.pack()
-        self.button_run = tk.Button(self.frames[3][0], text = 'Run Experiment', 
-            command=lambda: self.run_experiment(self.hologram_width, self.hologram_height, 
-                self.xPix, self.yPix, self.config_shutter, self.config_motor, 
-                    self.config_laser, self.img_as_arr, self.exposure_arr, self.laser_arr))
+        self.button_run = tk.Button(self.frames[3][0], text = 'Run Experiment', command=lambda: self.run_experiment(self.hologram_width, self.hologram_height, self.xPix, self.yPix, self.config_shutter, self.config_motor, self.config_laser, self.img_as_arr, self.exposure_arr, self.laser_arr, self.laser_settings))
         self.button_run.pack()
         
         #Set up Running Experiment
@@ -150,8 +189,7 @@ class SingleImageCreator(GenericImageCreator):
         self.label_position = tk.Label(self.frames[4][0], text='Current Pixel (x,y): (x,y)')
         self.label_position.pack() 
         
-        #FIXME: get previous laser data
-        #Fill with values from previous experiment
+        #Fill main window with values from previous experiment
         self.text_communication.insert(tk.END, 'Retrieving previous experiment data.\n')
         with open('Prior Experiment Data Single Image Creation.txt', 'r') as file:
             try:
@@ -176,44 +214,44 @@ class SingleImageCreator(GenericImageCreator):
                 error_message += '\t' + str(e) + '\n'
                 self.text_communication.insert(tk.END, error_message)                
     
-    #FIXME: add to parent class. args: image label; modifes image and prints to label
     def image_select(self):
         """
         Get image from user, downsize automatically, and display.
         """
         
+        #Store original PIL image
         self.text_communication.insert(tk.END, 'Finding and storing your image.\n')
         self.file = filedialog.askopenfilename()
         self.img_pil = imagemodification.convert_grey_downsize(self.file, newX=None, newY=None, convert=False)
+        
+        #Print an appropriately downsized image to the main window
         self.img_tk = ImageTk.PhotoImage(imagemodification.convert_grey_downsize(self.file, newX=200, newY=200, convert=False))
         self.label_img.configure(image=self.img_tk)
         self.label_img_lbl.configure(text='Original Image')
         
-    #FIXME: implement one try-catch statement and modify the error string as execution flows
     def get_data(self):
         """
-        Gets data from main window and drives next processes in program.
+        Get data from main window and drives next processes in program.
         
         Notes:
             Provides basic feedback to user if processes go wrong.
         """
         
         try:
+            #Get hologram size, image modifcations
             self.text_communication.insert(tk.END, 'Getting all raw user data from main window.\n')
-            #Get hologram size, image modifcations, and maximum laser power
             error_message = 'Something went wrong getting the hologram width/height.'
             self.hologram_width = float(self.entry_width.get())
             self.hologram_height = float(self.entry_height.get())
             error_message = 'Something went wrong getting the hologram horizontal/vertical pixels.'
-            if type(self.entry_Xpix.get()) is int:
+            if self.entry_Xpix.get().rsplit() != '':
                 self.xPix = int(self.entry_Xpix.get())
             else:
                 self.xPix = self.img_pil_mod.width
-            if type(self.entry_Ypix.get()) is int:
+            if self.entry_Ypix.get().rsplit() != '':
                 self.yPix = int(self.entry_Ypix.get())
             else:
                 self.yPix = self.img_pil_mod.height
-            print('Size' + str(self.xPix) + str(self.yPix))
             error_message = 'Something went wrong getting the cropping information.'
             cropping = self.entry_crop.get()
             
@@ -244,10 +282,10 @@ class SingleImageCreator(GenericImageCreator):
             error_message = 'Something went wrong getting previous configurations for the Laser.'
             self.config_laser = self.get_serial_config('Laser')
             
-            #Modify the image, convert into an array
+            #Modify the image, convert into an array, update xPix and yPix (cropping)
             self.text_communication.insert(tk.END, 'Modifying the image and processing into an array.\n')
             error_message = 'Something went wrong while modifying the image.'
-            self.modify_image(self.xPix, self.yPix, cropping)
+            self.xPix, self.yPix = self.modify_image(self.xPix, self.yPix, cropping)
             error_message = 'Something went wrong while processing the image into an array.'
             self.img_as_arr = self.image_as_array(self.root, self.img_pil_mod, 'Modified Image')
             
@@ -259,45 +297,56 @@ class SingleImageCreator(GenericImageCreator):
             self.label_end_time_est.configure(text='Estimated End Time: ' + (datetime.now() + exp).strftime('%H:%M:%S -- %d/%m/%Y'))
             error_message = 'All data processed correctly.'
             
+            #Get the laser settings from the file
+            self.text_communication.insert(tk.END, 'Getting up to date laser settings.\n')
+            self.laser_settings = self.get_laser_settings()
+            
         except Exception as e:
-            error_message += '\n\t' + str(e) + '\n'
+            self.text_communication.insert(tk.END, '\t' + str(e) + '\n')
             return
+        
         finally:
-            self.text_communication.insert(tk.END, error_message)
+            self.text_communication.insert(tk.END, error_message + '\n')
         
     def modify_image(self, xPix, yPix, cropping):
         """
-        Modify the image. Update on main window.
+        Modify the original image and update on main window.
         
         Arguments:
             (arg1) xPix (int) : number of pixels to downsize horizontally
             (arg2) yPix (int) : number of pixels to downsize vertically
             (arg3) cropping (string) : formatted string with croppng details
+            
+        Returns:
+            (arg1) new_xPix (int) : number of pixels horizontally after cropping
+            (arg2) new_yPix (int) : number of pixels vertically after cropping
         """
         
-        #Modify the image
+        #Modify the image, redefine the number of pixels in image
+        self.text_communication.insert(tk.END, '\tDownsizing the original image with your new dimentions.\n')
         self.img_pil_mod = imagemodification.convert_grey_downsize(self.file, xPix, yPix, True)
-        self.img_tk_mod = ImageTk.PhotoImage(self.img_pil_mod)
-        if cropping.capitalize() != 'none'.capitalize() and cropping != '':
-            try:
-                self.img_pil_mod = imagemodification.crop_image(cropping, self.img_pil_mod)
-                self.img_tk_mod = ImageTk.PhotoImage(self.img_pil_mod)
-            except Exception as e:
-                raise e
-            
-        #The main window cannot handle images larger than 200x200
-        if xPix > 200 and yPix <= 200:
-            img_temp = ImageTk.PhotoImage(imagemodification.convert_grey_downsize(self.file, newX=200, newY=yPix, convert=True))
-        elif yPix > 200 and xPix <= 200:
-            img_temp = ImageTk.PhotoImage(imagemodification.convert_grey_downsize(self.file, newX=xPix, newY=200, convert=True))
-        elif xPix > 200 and yPix > 200:
-            img_temp = ImageTk.PhotoImage(imagemodification.convert_grey_downsize(self.file, newX=xPix, newY=200, convert=True))
+        if cropping != '':
+            self.text_communication.insert(tk.END, '\tApplying your cropping to the downsized image.\n')
+            self.img_pil_mod = imagemodification.crop_image(cropping, self.img_pil_mod)
+        self.img_tk_mod = ImageTk.PhotoImage(self.img_pil_mod) 
+        new_xPix = self.img_pil_mod.width
+        new_yPix = self.img_pil_mod.height
+        
+        #Update on screen, downsize screen image if larger than 200x200
+        if new_xPix > 200 or new_yPix > 200:
+            self.text_communication.insert(tk.END, '\tYour image is too big for the main window. Downsizing it again, but only for display.\n')
+            if xPix > 200 and yPix <= 200:
+                img_temp = ImageTk.PhotoImage(imagemodification.convert_grey_downsize(self.file, newX=200, newY=yPix, convert=True))
+            if yPix > 200 and xPix <= 200:
+                img_temp = ImageTk.PhotoImage(imagemodification.convert_grey_downsize(self.file, newX=xPix, newY=200, convert=True))
+            if xPix > 200 and yPix > 200:
+                img_temp = ImageTk.PhotoImage(imagemodification.convert_grey_downsize(self.file, newX=200, newY=200, convert=True))
         else:
             img_temp = self.img_tk_mod
-            
-        #Update on screen
         self.label_img_mod.configure(image=img_temp)
         self.label_img_lbl_mod.configure(text='Modified Image')
+        
+        return new_xPix, new_yPix
             
     def time_estimation(self, img_as_arr, exposure_arr, xPix, yPix, hologram_width, hologram_height):
         """
@@ -334,8 +383,10 @@ class SingleImageCreator(GenericImageCreator):
         run_time += hologram_height / .001
         return run_time
     
-    def run_experiment(self, hologram_width, hologram_height, xPix, yPix, config_shutter, 
-                       config_motor, config_laser, img_as_arr, exposure_arr, laser_arr):
+    #FIXME: incorporate the laser
+    def run_experiment(self, hologram_width, hologram_height, xPix, yPix, 
+        config_shutter, config_motor, config_laser, img_as_arr, exposure_arr, 
+        laser_arr, laser_settings):
         """
         Run the experiment by moving the motor and opening and closing the shutter.
         
@@ -350,54 +401,48 @@ class SingleImageCreator(GenericImageCreator):
             (arg8) img_as_arr (list[list[int]]) : the image converted into an array
             (arg9) exposure_arr (list[float]) : mapping of pixel values to exposure time
             (arg10) laser_arr (list[float]) : mapping of pixel values to laser power
+            (arg11) laser_settings (list) : settings for the laser such as maximum power
         """
         
-        self.listbox.activate(0)
-        
-        #Capture the screen?
-            
+        #FIXME: take a screen shot and save it to a folder            
         #Record the start time of the experiment and compute dot separation
         self.label_start_time.configure(text = 'Start Time: ' + datetime.now().strftime('%H:%M:%S -- %d/%m/%Y'))
         self.listbox.activate(0)
         xDelta = 1.0 * hologram_width / xPix
         yDelta = 1.0 * hologram_height / yPix
         
-        #Initialize the motor with an alternative constructor
         try:
+            #Set up the serial connections
+            self.text_communication.insert(tk.END, 'Establishing serial connections with devices.\n')
+            error_message = 'Something went wrong establishing a serial connection with the motor.'
             motor = Motor.from_arguments(config_motor)
+            error_message = 'Something went wrong establishing a serial connection with the shutter.'
+            shutter = Shutter.from_arguments(config_shutter)
+            error_message = 'Something went wrong establishing a serial connection with the laser.'
+            laser = Laser.from_arguments(config_laser) #FIXME
+            
+            #turn on and configure the laser #FIXME
+            laser.configure_settings(laser_settings)
+            laser.read_power() 
+            
+            #Configure each axis, move home
+            self.text_communication.insert(tk.END, 'Configuring the axes and moving home.\n')
+            error_message = 'Something went wrong configuring the stages.'
             motor.configureAxis(axis=1, velocity=1.0, acceleration=4, moveHome=True)
             motor.configureAxis(axis=2, velocity=1.0, acceleration=4, moveHome=True)
-            message = '\nEstablished a serial connection with motor\n'
-        except Exception as e:
-            message = '\nSomething went wrong with setting up a connection with the motor.\n'
-            message += str(e) + '\n'
-            return
-        finally:
-            self.text_communication.insert(tk.END, message)
             
-        #Initialize the shutter with an alternative constructor
-        try:
-            shutter = Shutter(config_shutter)
-            message = '\nEstablished a serial connection with shutter\n'
-        except Exception as e:
-            message = '\nSomething went wrong with setting up a connection with the shutter.\n'
-            message += str(e) + '\n'
-            return
-        finally:
-            self.text_communication.insert(tk.END, message)
-            
-        #Movement and exposure procedure
-        try:
-            #Read greyscale image, move as needed
+            #Move stages and exposure according to pixel value at that location
+            self.text_communication.insert(tk.END, 'Printing the image.\n')
             for i in range(0, yPix):
-                onRow = False #indicates the motor is already at a row
+                onRow = False 
                 for j in range(0, xPix):
                     #Handle pause or abort
+                    error_message = 'Something went wrong printing the image at ' + i + ',' + j + '.'
                     while self.listbox.curselection != 0:
                         if self.listbox.curselection == 1:
                             time.sleep(1)
                         if self.listbox.curselection == 2:
-                            raise Exception
+                            raise Exception('User terminated experiment')
                     #Movement and exposure
                     self.label_position.configure(text='Current Pixel (x,y): ' + str(j) + ',' + str(i))
                     cur_pix = img_as_arr[j][i]
@@ -407,21 +452,26 @@ class SingleImageCreator(GenericImageCreator):
                         motor.moveAbsolute(axis=1, goToPos=j*xDelta*1000)
                         onRow = True
                         shutter.toggle_shutter(exposure_arr[cur_pix])
+                        
+            error_message = 'All experimental procedures executed properly'
+                        
         except Exception as e:
-            message = '\nSomething went wrong with the motion and exposure process.\n'
-            message += str(e) + '\n' 
-            self.text_communication.insert(tk.END, message)
-            return
-        finally:
-            #Ensure all serial ports are closed ect
-            message = '\nClosing the serial port connections with the motor and shutter\n'
-            self.text_communication.insert(tk.END, message)
+            self.text_communication.insert(tk.END, '\t' + str(e) + '\n')
+            self.text_communication.insert(tk.END, 'Closing all serial ports due to malfunction.\n')
             motor.ser.close()
             shutter.ser.close()
+            laser.ser.close() #FIXME
+            return
         
-        #Print the time the experiment finished
-        self.label_end_time.configure(text = 'Experiment End Time: ' + 
-                            datetime.now().strftime('%H:%M:%S -- %d/%m/%Y'))
+        finally:
+            self.text_communication.insert(tk.END, error_message + '\n')
+        
+        #Final processes before program termination
+        self.text_communication.insert(tk.END, 'Closing all serial ports due to malfunction.\n')
+        motor.ser.close()
+        shutter.ser.close()
+        laser.ser.close() #FIXME
+        self.label_end_time.configure(text = 'Experiment End Time: ' + datetime.now().strftime('%H:%M:%S -- %d/%m/%Y'))
 
 #MainLoop
 root = tk.Tk()

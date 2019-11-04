@@ -7,7 +7,7 @@ xPix
 yPix
 200
 Cropping
-(50,50),(100,100)
+
 Laser Maximum Power
 3.0
 Exposure Lines

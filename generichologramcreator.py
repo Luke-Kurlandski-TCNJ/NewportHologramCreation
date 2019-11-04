@@ -117,7 +117,7 @@ class GenericImageCreator:
         
         menu = tk.Menu(window)
         window.config(menu=menu)
-        menu.add_command(label='Quit Window', command=window.destroy)
+        menu.add_command(label='Close', command=window.destroy)
         return menu
     
     def image_as_array(self, window, img_pil, title):
@@ -227,7 +227,15 @@ class GenericImageCreator:
                 raise Exception('Tried to use a laser power greater than allowed which is, ' + str(max_power))
         return exposure_arr, laser_arr
         
-        
+    def save_experiment(self):
+        """
+        Save the inputs on an experiment.
+        """
+    
+    def open_experiment(self):
+        """
+        Open a previous experiment.
+        """
     
     def setup_serial_port(self, port_name):
         """
@@ -375,10 +383,8 @@ class GenericImageCreator:
             file.close()
             return (port, baudrate, timeout, stopbits, bytesize, parity)
         except FileNotFoundError:
-            message = '\nYou have not specified any serial port information for the ' 
-            + port_name + ' and there is no record of information from a prior experiment.\n'
-            self.text_communication(tk.END, message)
-            raise
+            raise FileNotFoundError('\nYou have not specified any serial port information for the ' 
+                + port_name + ' and there is no record of information from a prior experiment.\n')
     
     def error_window(self, window, message):
         """
@@ -425,35 +431,69 @@ class GenericImageCreator:
         file.close()
         return help_window
     
-    def laser_settings(self, previous=0):
+    def laser_settings(self):
         """
-        Sets the maximum power allowed by a laser to user-define value.
+        Saves the laser settings into a file.
         
         Notes:
-            Currently overwrites the value incomming as argument
-            Possibly change to a file-store method, especially if more features added
+            Easily expandable to include more settings.
+            Modify get_laser_settings as needed.
         
         Arguments:
             (arg1) previous (float) : the maximum power from previous experiment, overwritten
         """
-        #FIXME: replace with a file saving method
+        
         def laser_save():
             """
             Saves the laser settings.
             """
             
-            self.laser_maximum = float(entry_power.get())
+            self.text_communication.insert(tk.END, '\tSaving the laser settings.\n')
+            laser_subjects = ['Laser Power']
+            laser_data = [entry_power.get()] 
+            self.store_previous_data('Laser Settings.txt', laser_subjects, laser_data)
             window.destroy()
-            
-        window = self.pop_up_window(self.root, 'Laser Settings', 100, 150)
+        
+        #Laser setting options
+        window = self.pop_up_window(self.root, 'Laser Settings', 100, 200)
         self.set_up_menu(window)
-        tk.Label(window, text = 'Laser Power:').grid(row=0, column=0)
+        tk.Label(window, text = 'Maximum Laser Power (mW):').grid(row=0, column=0)
         entry_power = tk.Entry(window, width=10)
         entry_power.grid(row=0, column=1, sticky = tk.W)
-        entry_power.insert(0, previous)
+        #Get previous configurations and fill
+        try:
+            self.text_communication.insert(tk.END, 'Getting previous experiment\'s laser settings.\n')
+            file = open('Laser Settings.txt', 'r')
+            lines = file.readlines()
+            entry_power.insert(0, lines[1])
+            file.close()
+        except FileNotFoundError:
+            self.text_communication.insert(tk.END, '\tNo previous laser settings detected.\n')
+        #Warning and save button
         tk.Label(window, text = 'Using incorrect settings\ncould destroy the laser.').grid(row=1, column=0, columnspan=2)
         button_save = tk.Button(window, text = 'These are the\n Correct Settings', command = laser_save)
         button_save.grid(row=2, column=0, columnspan=2)
+        
+    def get_laser_settings(self):
+        """
+        Get the laser settings from a file.
+        
+        Returns:
+            (ret1) lines[1] (float) : the maximum power read from the file
+        """
+        
+        try:
+            file = open('Laser Settings.txt', 'r')
+            lines = file.readlines()
+            print(lines)
+            file.close()
+            return float(lines[1].rstrip())
+        
+        except FileNotFoundError:
+            raise FileNotFoundError('You have not specified any settings for the ' 
+                'laser and there is no record of information from a prior experiment.\n')
+        
+        
     
     def pop_up_window(self, window, title='Message', window_height=150, window_width=200, resizable = True, x_move=0, y_move=0):
         """
