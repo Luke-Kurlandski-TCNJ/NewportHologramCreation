@@ -17,6 +17,8 @@ class GenericImageCreator:
     
     Notes:
         Parent class
+        Place Tkinter stuff at the top. This will eventually be moved into its
+            own class.
     """
     
     def __init__(self, root, window_width, window_height, window_title):
@@ -33,10 +35,13 @@ class GenericImageCreator:
         #Set up the root
         self.root = root
         
-        #Error Box
+        #Error window with textbox filling window
         self.window_communication = self.pop_up_window(self.root, 'Communication Window', 660, 425, True, -200, -20) 
-        self.text_communication = tk.Text(self.window_communication, width=50, height=40)
-        self.text_communication.grid()
+        self.set_up_menu(self.window_communication)
+        self.text_communication = tk.Text(self.window_communication)
+        self.text_communication.grid(sticky = tk.N+tk.S+tk.E+tk.W)
+        self.window_communication.grid_columnconfigure(0, weight = 1)
+        self.window_communication.grid_rowconfigure(0, weight = 1)
         self.apply_scrollbars(self.window_communication, self.text_communication, True, True)
         
         #Configure the root
@@ -45,10 +50,10 @@ class GenericImageCreator:
         x_cordinate = int((screen_width/2) - (window_width/2))
         y_cordinate = int((screen_height/2) - (window_height/2))
         self.root.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate+200, y_cordinate-40))
-        self.root.title(window_title)
+        self.root.title('Luke Kurlandski: ' + window_title)
         
         #Default maximum laser power
-        self.laser_maximum = 0.0
+        self.laser_maximum = -1
     
     def set_up_frames(self, window, frames_horizontal, frames_vertical):
         """
@@ -101,8 +106,7 @@ class GenericImageCreator:
             scrollbar_y = tk.Scrollbar(master, orient = tk.VERTICAL, command = wigit.yview)
             scrollbar_y.grid(row=yrow, column=ycol, sticky = tk.N + tk.S)
             yscrollcommand = scrollbar_y.set
-        wigit.configure(yscrollcommand = yscrollcommand, 
-                         xscrollcommand = xscrollcommand, wrap = tk.NONE)
+        wigit.configure(yscrollcommand = yscrollcommand, xscrollcommand = xscrollcommand, wrap = tk.NONE)
         
     def set_up_menu(self, window):
         """
@@ -117,8 +121,70 @@ class GenericImageCreator:
         
         menu = tk.Menu(window)
         window.config(menu=menu)
-        menu.add_command(label='Quit Window', command=window.destroy)
+        menu.add_command(label='Close', command=window.destroy)
         return menu
+    
+    def help_window(self, window, subject, window_height=400, window_width=800):
+        """
+        Create a 'help me' pop up window for any window based upon the instructions from file.
+        
+        Arguments:
+            (arg1) window (tk.Toplevel) : window to apply help window to
+            (arg2) subject (string) : subject user requires assistence with
+            (arg3) help_window_height (int) : size of window in y direction
+            (arg4) help_window_width (int) : size of window in x direction
+            
+        Returns:
+            (ret1) help_window (tk.Toplevel) : the help window
+        """
+        
+        try:
+            file = open('Help ' + subject + '.txt', 'r')
+        except FileNotFoundError as e:
+            message = '\nThe help document ' + subject + ' cannot be found.\n'
+            message+= str(e) + '\n'
+            self.text_communication.insert(tk.END, message)
+            return
+        help_window = self.pop_up_window(window, 'Help', window_height, window_width, resizable = True)
+        text = tk.Text(help_window, width=95, height=22)
+        text.grid()
+        text.insert(tk.INSERT, file.read())
+        self.apply_scrollbars(help_window, text, True, True)
+        file.close()
+        return help_window
+    
+    def pop_up_window(self, window, title='Message', window_height=150, window_width=200, resizable = True, x_move=0, y_move=0):
+        """
+        Launch an pop up window on the affiliated window. Centers on Screen.
+        
+        Arguments:
+            (arg1) window (tk.Toplevel) : master window the error window is attatched to
+            (arg2) title (string) : title of the pop-up window
+            (arg3) window_height (int) : height of the pop-up window
+            (arg4) window_width (int) : width of the pop-up window
+            (arg5) resizable (boolean) : if the user can modify the window size
+            (arg6) x_move (int) : a slight shift in the x location of window
+            (arg7) y_move (int) : a slight shift in the y location of window
+            
+        Retuns:
+            (ret1) pop_up_window (tk.Toplevel) : pop-up window
+        """
+        
+        pop_up_window = tk.Toplevel(window) 
+        pop_up_window.title(title)
+        pop_up_window.resizable(resizable, resizable)
+        screen_width = pop_up_window.winfo_screenwidth()
+        screen_height = pop_up_window.winfo_screenheight()
+        x_cordinate = int((screen_width/2) - (window_width/2)) + x_move
+        y_cordinate = int((screen_height/2) - (window_height/2)) + y_move
+        
+        #pop_up_window
+        
+        #pop_up_window.geometry(str(window_height)+'x'+str(window_width)+' + '+str(x_cordinate)+' + '+str(y_cordinate))
+        
+        pop_up_window.geometry("{}x{}+{}+{}".format(window_width, window_height, 
+            (x_cordinate+x_move), (y_cordinate+y_move)))
+        return pop_up_window
     
     def image_as_array(self, window, img_pil, title):
         """
@@ -134,20 +200,14 @@ class GenericImageCreator:
         """
         
         #Configure array window, display, and scrollbars
-        xPix = img_pil.width
-        yPix = img_pil.height
         array_window = tk.Toplevel(window)
+        text_arr = tk.Text(array_window)
+        text_arr.grid(sticky=tk.N + tk.S + tk.E + tk.W)
+        array_window.grid_columnconfigure(0, weight = 1)
+        array_window.grid_rowconfigure(0, weight = 1)
         self.set_up_menu(array_window)
-        tk.Label(array_window, text = title).pack(side = tk.TOP)
-        scrollbar_y = tk.Scrollbar(array_window)
-        scrollbar_y.pack(side = tk.RIGHT, fill = tk.Y)
-        scrollbar_x = tk.Scrollbar(array_window, orient = tk.HORIZONTAL)
-        scrollbar_x.pack(side = tk.BOTTOM, fill = tk.X)
-        text_arr = tk.Text(array_window, yscrollcommand = scrollbar_y.set, 
-                xscrollcommand = scrollbar_x.set, width = xPix*4, height = yPix, wrap = tk.NONE)
-        text_arr.pack()
-        scrollbar_y.configure(command = text_arr.yview)
-        scrollbar_x.configure(command = text_arr.xview)
+        self.apply_scrollbars(array_window, text_arr, True, True)
+        
         #Print the array to screen
         img_as_arr = imagemodification.get_image_array(img_pil)
         for i in img_as_arr:
@@ -162,7 +222,7 @@ class GenericImageCreator:
         array_window.configure(width=100, height=100)
         return img_as_arr
     
-    def generate_exposure_details(self, exposure, ignore, laser, max_power):
+    def generate_exposure_details(self, exposure, ignore, laser):
         """
         Generate the arrays to describe laser exposure lengths.
         
@@ -170,7 +230,6 @@ class GenericImageCreator:
             (arg1) exposure (list[string]) : special strings containing exposure details
             (arg2) ignore (list[string]) : special strings containing ignore details
             (arg3) laser (list[string]) : special string containing laser details
-            (arg4) max_power (float) : the maximum power the laser is capable of handling
             
         Return:
             (ret1) exposure_arr (list[int]) : mapping of pixel values to exposure time
@@ -194,7 +253,8 @@ class GenericImageCreator:
             else:
                 mlt_fctr = float(line[bracket+2:x])
                 for i in range(start,end):
-                    exposure_arr[i] = mlt_fctr*i
+                    exposure_arr[i] = round(mlt_fctr*i,2)
+                    
         #Modify exposure array and process ignore
         for line in ignore:
             comma = line.find(',')
@@ -203,6 +263,7 @@ class GenericImageCreator:
             end = int(line[comma+1:bracket])
             for i in range(start,end):
                 exposure_arr[i] = 0
+                
         #Generate laser array and process laser
         laser_arr = []
         for i in range(0,256):
@@ -220,14 +281,8 @@ class GenericImageCreator:
             else:
                 mlt_fctr = float(line[bracket+2:x])
                 for i in range(start,end):
-                    laser_arr[i] = mlt_fctr*i
-        #Ensure the laser array does not violate max_power, then return data
-        for i in laser_arr:
-            if i > max_power:
-                raise Exception('Tried to use a laser power greater than allowed which is, ' + str(max_power))
+                    laser_arr[i] = round(mlt_fctr*i,2)
         return exposure_arr, laser_arr
-        
-        
     
     def setup_serial_port(self, port_name):
         """
@@ -273,7 +328,7 @@ class GenericImageCreator:
         y_cordinate = int((screen_height/2) - (serialport_window_height/2))
         serialport_window.geometry("{}x{}+{}+{}".format(serialport_window_width, serialport_window_height, x_cordinate, y_cordinate))
         
-        #Create a menu bar in te serial port window
+        #Create a menu bar in the serial port window
         self.set_up_menu(serialport_window)
         
         #Create labels for the port window
@@ -330,21 +385,6 @@ class GenericImageCreator:
         
         #Run the serial port window
         serialport_window.mainloop()
-    
-    def store_previous_data(self, file_name, subjects, datas):
-        """
-        Store data entered on the main screen in a txt file for later use.
-        
-        Arguments:
-            (arg1) file_name (string) : name of txt file
-            (arg2) subjects (list[string]) : subject headers to proceed data in file
-            (arg3) datas (list[string]) : the data pulled from the UI
-        """
-        
-        with open(file_name, 'w') as file:
-            for i,j in zip(subjects,datas):
-                file.write(str(i) + '\n')
-                file.write(str(j) + '\n')
             
     def get_serial_config(self, port_name):
         """
@@ -375,121 +415,100 @@ class GenericImageCreator:
             file.close()
             return (port, baudrate, timeout, stopbits, bytesize, parity)
         except FileNotFoundError:
-            message = '\nYou have not specified any serial port information for the ' 
-            + port_name + ' and there is no record of information from a prior experiment.\n'
-            self.text_communication(tk.END, message)
-            raise
+            raise FileNotFoundError('\nYou have not specified any serial port information for the ' 
+                + port_name + ' and there is no record of information from a prior experiment.\n')
     
-    def error_window(self, window, message):
+    def store_previous_data(self, file_name, subjects, datas):
         """
-        Launch an error window on the affiliated window
+        Store data entered on the main screen in a txt file for later use.
         
         Arguments:
-            (arg1) window (tk.Toplevel) : master window the error window is attatched to
-            (arg2) title (string) : title of the pop-up window
-            
-        Returns:
-            (ret1) error_window (tk.Toplevel) : the error window
+            (arg1) file_name (string) : name of txt file
+            (arg2) subjects (list[string]) : subject headers to proceed data in file
+            (arg3) datas (list[string]) : the data pulled from the UI
         """
         
-        error_window = self.pop_up_window(window, 'Error', resizable = True, window_height=200)
-        tk.Label(error_window, text=message).pack()
-        return error_window
+        with open(file_name, 'w') as file:
+            for i,j in zip(subjects,datas):
+                file.write(str(i).rstrip() + '\n')
+                file.write(str(j).rstrip() + '\n')
     
-    def help_window(self, window, subject, window_height=400, window_width=800):
+    def laser_settings(self):
         """
-        Create a 'help me' pop up window for any window based upon the instructions from file.
-        
-        Arguments:
-            (arg1) window (tk.Toplevel) : window to apply help window to
-            (arg2) subject (string) : subject user requires assistence with
-            (arg3) help_window_height (int) : size of window in y direction
-            (arg4) help_window_width (int) : size of window in x direction
-            
-        Returns:
-            (ret1) help_window (tk.Toplevel) : the help window
-        """
-        
-        try:
-            file = open('Help ' + subject + '.txt', 'r')
-        except FileNotFoundError as e:
-            message = '\nThe help document ' + subject + ' cannot be found.\n'
-            message+= str(e) + '\n'
-            self.text_communication.insert(tk.END, message)
-            return
-        help_window = self.pop_up_window(window, 'Help', window_height, window_width, resizable = True)
-        text = tk.Text(help_window, width=95, height=22)
-        text.grid()
-        text.insert(tk.INSERT, file.read())
-        self.apply_scrollbars(help_window, text, True, True)
-        file.close()
-        return help_window
-    
-    def laser_settings(self, previous=0):
-        """
-        Sets the maximum power allowed by a laser to user-define value.
+        Saves the laser settings into a file.
         
         Notes:
-            Currently overwrites the value incomming as argument
-            Possibly change to a file-store method, especially if more features added
+            Easily expandable to include more settings.
+            Modify get_laser_settings as needed.
         
         Arguments:
             (arg1) previous (float) : the maximum power from previous experiment, overwritten
         """
-        #FIXME: replace with a file saving method
+        
         def laser_save():
             """
             Saves the laser settings.
             """
             
-            self.laser_maximum = float(entry_power.get())
+            self.text_communication.insert(tk.END, '\tSaving the laser settings.\n')
+            laser_subjects = ['Laser Power', 'Power Change Pause']
+            laser_data = [entry_power.get(), entry_pause.get()]
+            self.store_previous_data('Laser Settings.txt', laser_subjects, laser_data)
             window.destroy()
-            
-        window = self.pop_up_window(self.root, 'Laser Settings', 100, 150)
+        
+        #Laser setting options
+        window = self.pop_up_window(self.root, 'Laser Settings', 100, 250)
         self.set_up_menu(window)
-        tk.Label(window, text = 'Laser Power:').grid(row=0, column=0)
+        tk.Label(window, text = 'Maximum Laser Power (mW):').grid(row=0, column=0)
         entry_power = tk.Entry(window, width=10)
         entry_power.grid(row=0, column=1, sticky = tk.W)
-        entry_power.insert(0, previous)
-        tk.Label(window, text = 'Using incorrect settings\ncould destroy the laser.').grid(row=1, column=0, columnspan=2)
-        button_save = tk.Button(window, text = 'These are the\n Correct Settings', command = laser_save)
+        tk.Label(window, text = 'Power Change Pause:').grid(row=1, column=0)
+        entry_pause = tk.Entry(window, width=10)
+        entry_pause.grid(row=1, column=1, sticky = tk.W)
+        #Get previous configurations and fill
+        try:
+            self.text_communication.insert(tk.END, 'Getting previous experiment\'s laser settings.\n')
+            file = open('Laser Settings.txt', 'r')
+            lines = file.readlines()
+            entry_power.insert(0, lines[1])
+            entry_pause.insert(0, lines[3])
+            file.close()
+        except FileNotFoundError:
+            self.text_communication.insert(tk.END, '\tNo previous laser settings detected.\n')
+        except Exception:
+            self.text_communication.insert(tk.END, '\tPrevious laser setting were incomplete.\n')
+        #Warning and save button
+        button_save = tk.Button(window, text = 'Save Correct Settings', command = laser_save)
         button_save.grid(row=2, column=0, columnspan=2)
     
-    def pop_up_window(self, window, title='Message', window_height=150, window_width=200, resizable = True, x_move=0, y_move=0):
+    def shutter_settings(self):
         """
-        Launch an pop up window on the affiliated window. Centers on Screen.
-        
-        Arguments:
-            (arg1) window (tk.Toplevel) : master window the error window is attatched to
-            (arg2) title (string) : title of the pop-up window
-            (arg3) window_height (int) : height of the pop-up window
-            (arg4) window_width (int) : width of the pop-up window
-            (arg5) resizable (boolean) : if the user can modify the window size
-            (arg6) x_move (int) : a slight shift in the x location of window
-            (arg7) y_move (int) : a slight shift in the y location of window
-            
-        Retuns:
-            (ret1) pop_up_window (tk.Toplevel) : pop-up window
+        FIXME: implement
         """
         
-        pop_up_window = tk.Toplevel(window) 
-        pop_up_window.title(title)
-        pop_up_window.resizable(resizable, resizable)
-        screen_width = pop_up_window.winfo_screenwidth()
-        screen_height = pop_up_window.winfo_screenheight()
-        x_cordinate = int((screen_width/2) - (window_width/2)) + x_move
-        y_cordinate = int((screen_height/2) - (window_height/2)) + y_move
-        
-        #pop_up_window
-        
-        #pop_up_window.geometry(str(window_height)+'x'+str(window_width)+' + '+str(x_cordinate)+' + '+str(y_cordinate))
-        
-        pop_up_window.geometry("{}x{}+{}+{}".format(window_width, window_height, 
-            (x_cordinate+x_move), (y_cordinate+y_move)))
-        return pop_up_window
+    def motor_settings(self):
+        """
+        FIXME: implement
+        """ 
     
-    
+    def get_laser_settings(self): #FIXME: modify into a general, get settings
+        """
+        Get the laser settings from a file.
         
+        Returns:
+            (ret1) lines[1] (float) : the maximum power read from the file
+            (ret2) None (None) : placeholder for more settings to be implemented
+        """
         
+        try:
+            file = open('Laser Settings.txt', 'r')
+            lines = file.readlines()
+            file.close()
+            return float(lines[1].rstrip()), float(lines[3].rstrip())
         
+        except FileNotFoundError:
+            raise FileNotFoundError('You have not specified any settings for the laser and there is no record of information from a prior experiment.\n')
         
+
+
+
