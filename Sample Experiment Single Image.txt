@@ -10,6 +10,8 @@ Cropping
 (10,10),(199,199)
 Laser Maximum Power
 22
+Laser Pause Period
+0
 Exposure Lines
 [0,50]:5
 [50,100]:4

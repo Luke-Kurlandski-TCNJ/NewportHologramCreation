@@ -10,6 +10,7 @@ from tkinter import ttk #GUI library extension
 import serial #Communication with serial ports
 import serial.tools.list_ports #Listing the COM ports
 import imagemodification #package to support image modification
+import numpy
 
 class GenericImageCreator:
     """
@@ -52,8 +53,9 @@ class GenericImageCreator:
         self.root.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate+200, y_cordinate-40))
         self.root.title('Luke Kurlandski: ' + window_title)
         
-        #Default maximum laser power
+        #Default laser settings
         self.laser_maximum = -1
+        self.laser_pause = 0
     
     def set_up_frames(self, window, frames_horizontal, frames_vertical):
         """
@@ -209,7 +211,8 @@ class GenericImageCreator:
         self.apply_scrollbars(array_window, text_arr, True, True)
         
         #Print the array to screen
-        img_as_arr = imagemodification.get_image_array(img_pil)
+        img_as_arr_ret = imagemodification.get_image_array(img_pil)
+        img_as_arr = numpy.transpose(img_as_arr_ret)
         for i in img_as_arr:
             for j in i:
                 spaces = '   '
@@ -220,7 +223,7 @@ class GenericImageCreator:
                 text_arr.insert(tk.END, str(j)+spaces)
             text_arr.insert(tk.END,'\n')
         array_window.configure(width=100, height=100)
-        return img_as_arr
+        return img_as_arr_ret
     
     def generate_exposure_details(self, exposure, ignore, laser):
         """
@@ -486,10 +489,16 @@ class GenericImageCreator:
         FIXME: implement
         """
         
+        self.pop_up_window(self.root, 'Shutter Settings')
+        tk.Label(text='Shutter Settings are coming soon!')
+        
     def motor_settings(self):
         """
         FIXME: implement
         """ 
+        
+        self.pop_up_window(self.root, 'Motor Settings')
+        tk.Label(text='Motor Settings are coming soon!')
     
     def get_laser_settings(self): #FIXME: modify into a general, get settings
         """

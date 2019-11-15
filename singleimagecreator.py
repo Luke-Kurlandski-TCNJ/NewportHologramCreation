@@ -135,12 +135,12 @@ class SingleImageCreator(GenericImageCreator):
         #Set up Default Images
         self.label_img_lbl = tk.Label(self.frames[0][1], text = 'Sample Image')
         self.label_img_lbl.pack()
-        self.file = 'DefaultImage.png'
-        self.img_pil = imagemodification.convert_grey_downsize('DefaultImage.png')
+        self.file = 'Sample Image.png'
+        self.img_pil = imagemodification.convert_grey_downsize(self.file)
         self.img_tk = ImageTk.PhotoImage(self.img_pil)
         self.label_img = tk.Label(self.frames[0][1], image=self.img_tk)
         self.label_img.pack()
-        self.img_pil_mod = imagemodification.convert_grey_downsize('DefaultImage.png', convert=True)
+        self.img_pil_mod = imagemodification.convert_grey_downsize(self.file, convert=True)
         self.img_tk_mod = ImageTk.PhotoImage(self.img_pil_mod)
         self.label_img_lbl_mod = tk.Label(self.frames[1][1], text = 'Modified Sample Image')
         self.label_img_lbl_mod.pack()
@@ -203,28 +203,7 @@ class SingleImageCreator(GenericImageCreator):
         
         #Fill main window with values from sample experiment
         self.text_communication.insert(tk.END, 'Retrieving previous experiment data.\n\n')
-        with open('Sample Experiment Single Image Creation.txt', 'r') as file:
-            try:
-                lines = file.readlines()
-                self.entry_width.insert(1, lines[1].rstrip())
-                self.entry_height.insert(1, lines[3].rstrip())
-                self.entry_Xpix.insert(1, lines[5].rstrip())
-                self.entry_Ypix.insert(1, lines[7].rstrip())
-                self.entry_crop.insert(1, lines[9].rstrip())
-                self.laser_maximum = float(lines[11].rstrip())
-                cont = 13
-                for i in range(13, lines.index('Ignore Lines\n')):
-                    self.exposure_details.insert(tk.END, lines[i].rstrip() + '\n')
-                    cont = i
-                for i in range(cont+2, lines.index('Laser Lines\n')):
-                    self.ignore_details.insert(tk.END, lines[i].rstrip() + '\n')
-                    cont = i
-                for j in range(cont+2, len(lines)):
-                    self.laser_details.insert(tk.END, lines[j].rstrip() + '\n') 
-            except Exception as e:
-                error_message = 'Something went wrong with retrieving data from the previous experiment.'
-                error_message += '\t' + str(e) + '\n'
-                self.text_communication.insert(tk.END, error_message) 
+        self.open_experiment('Sample Experiment Single Image.txt')
             
     def image_select(self):
         """
@@ -441,6 +420,7 @@ class SingleImageCreator(GenericImageCreator):
             self.text_communication.insert(tk.END, 'Configuring the laser.\n')
             self.root.update_idletasks()
             error_message = 'Something went wrong initializing the laser'
+            print(laser_settings)
             laser.configure_settings(laser_settings)
             
             #Configure each axis, move home
@@ -506,54 +486,67 @@ class SingleImageCreator(GenericImageCreator):
     def save_experiment(self):
         """
         Save the inputs on an experiment in a text file and takes a screenshot.
-        
-        Notes: 
-            Will attatch the date of the experiment to the end.
         """
         
         #Get the location and name of file from user
         file_save = filedialog.asksaveasfilename(initialdir = "/", title = "Save File As", filetypes = (("txt files","*.txt"),("All Files","*.*")))
         #Save the data
         self.text_communication.insert(tk.END, 'Storing all raw data in: ' + file_save + '\n')
-        subjects = ['HologramWidth', 'Hologram Height', 'xPix', 'yPix', 'Cropping', 'Laser Maximum Power', 'Exposure Lines', 'Ignore Lines', 'Laser Lines']
-        datas = [self.hologram_width, self.hologram_height, self.xPix, self.yPix, self.cropping, self.laser_maximum, self.exposure_details.get('1.0','end-1c').rstrip(), self.ignore_details.get('1.0','end-1c').rstrip(), self.laser_details.get('1.0','end-1c').rstrip()]
+        subjects = ['HologramWidth', 'Hologram Height', 'xPix', 'yPix', 'Cropping', 'Laser Maximum Power', 'Laser Pause Period', 'Exposure Lines', 'Ignore Lines', 'Laser Lines']
+        datas = [self.hologram_width, self.hologram_height, self.xPix, self.yPix, self.cropping, self.laser_maximum, self.laser_pause, self.exposure_details.get('1.0','end-1c').rstrip(), self.ignore_details.get('1.0','end-1c').rstrip(), self.laser_details.get('1.0','end-1c').rstrip()]
         self.store_previous_data(file_save, subjects, datas)
         #Take screenshot and save in same place
         myScreenshot = pyautogui.screenshot()
         myScreenshot.save(file_save.replace('.txt','.png'))
 
-    def open_experiment(self):
+    def open_experiment(self, file=None):
         """
         Open a previous experiment.
         """
         
         #Let the user choose which file to open
-        file_open = root.filename = filedialog.askopenfilename(initialdir = "/",title = "Select file",filetypes = (("txt files","*.txt"),("All files","*.*")))
+        if file == None:
+            file_open = root.filename = filedialog.askopenfilename(initialdir = "/",title = "Select file",filetypes = (("txt files","*.txt"),("All files","*.*")))
+        else:
+            file_open = file
+            
+        #Clear all user input
+        self.entry_width.delete(0, tk.END)
+        self.entry_height.delete(0, tk.END)
+        self.entry_Xpix.delete(0, tk.END)
+        self.entry_Ypix.delete(0, tk.END)
+        self.entry_crop.delete(0, tk.END)
+        self.exposure_details.delete(1.0, tk.END)
+        self.ignore_details.delete(1.0, tk.END)
+        self.laser_details.delete(1.0, tk.END)
         
         #Fill main window with values from previous experiment
         self.text_communication.insert(tk.END, 'Retrieving previous experiment data.\n\n')
-        with open(file_open, 'r') as file:
-            try:
-                lines = file.readlines()
-                self.entry_width.insert(1, lines[1].rstrip())
-                self.entry_height.insert(1, lines[3].rstrip())
-                self.entry_Xpix.insert(1, lines[5].rstrip())
-                self.entry_Ypix.insert(1, lines[7].rstrip())
-                self.entry_crop.insert(1, lines[9].rstrip())
-                self.laser_maximum = float(lines[11].rstrip())
-                cont = 13
-                for i in range(13, lines.index('Ignore Lines\n')):
-                    self.exposure_details.insert(tk.END, lines[i].rstrip() + '\n')
-                    cont = i
-                for i in range(cont+2, lines.index('Laser Lines\n')):
-                    self.ignore_details.insert(tk.END, lines[i].rstrip() + '\n')
-                    cont = i
-                for j in range(cont+2, len(lines)):
-                    self.laser_details.insert(tk.END, lines[j].rstrip() + '\n') 
-            except Exception as e:
-                error_message = 'Something went wrong with retrieving data from the previous experiment.'
-                error_message += '\t' + str(e) + '\n'
-                self.text_communication.insert(tk.END, error_message) 
+        try:
+            file = open(file_open, 'r')
+            lines = file.readlines()
+            self.entry_width.insert(1, lines[1].rstrip())
+            self.entry_height.insert(1, lines[3].rstrip())
+            self.entry_Xpix.insert(1, lines[5].rstrip())
+            self.entry_Ypix.insert(1, lines[7].rstrip())
+            self.entry_crop.insert(1, lines[9].rstrip())
+            self.laser_maximum = float(lines[11].rstrip())
+            self.laser_pause = float(lines[13].rstrip())
+            cont = 15
+            for i in range(cont, lines.index('Ignore Lines\n')):
+                self.exposure_details.insert(tk.END, lines[i].rstrip() + '\n')
+                cont = i
+            for i in range(cont+2, lines.index('Laser Lines\n')):
+                self.ignore_details.insert(tk.END, lines[i].rstrip() + '\n')
+                cont = i
+            for j in range(cont+2, len(lines)):
+                self.laser_details.insert(tk.END, lines[j].rstrip() + '\n') 
+        except Exception as e:
+            error_message = 'Something went wrong with retrieving data from the previous experiment.'
+            error_message += '\t' + str(e) + '\n'
+            self.text_communication.insert(tk.END, error_message) 
+        finally:
+            file.close()
         
 #MainLoop
 root = tk.Tk()
