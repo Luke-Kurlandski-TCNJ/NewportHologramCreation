@@ -1,52 +1,35 @@
 # -*- coding: utf-8 -*-
+
 """
 Create a single image upon a hologram.
 
 Created on 9/22/19
 Updated on 11/1/19
 
-@author: Luke Kurlandski
+Copyright 2019, Luke Kurlandski, All rights reserved.
 
 SingleImageCreator is designed to provide a simple, user interface to facilitate
 the creation of single-image holograms upon a film. This program inherits from
 GenericImageCreator. 
 
-The program functions as follows:
-    
-    1) determine the size of the hologram to create;
-    2) modify an image according to user specifications and convert into an
-        array of pixel values for each pixel in the image;
-    3) process user input to determine how long and at what power level to expose
-        each particular pixel value;
-    4) control the motor, shutter, and laser to create the image upon the film.
-    
-The program is not a masterpiece. Functionality is more important than perfection.
-Luke Kurlandski wrote this program with his focus on creating beautiful holograms,
-not beautiful code.
-
-Any and all modifications to this program in the future should be performed upon
-a copy. This version should at no time ever be modified by anyone other than Luke
-Kurlandski. 
-
 This program was written by Luke Kurlandski and is his intellectual property. 
-Dr. David McGee, The College of New Jersey Physics Department, has unlimited access 
-to this program.
+
+Luke Kurlandski recieved assistence from Matthew VanSoelen and Daniel Stolz. 
+
+Dr. David McGee has permission to use this code in whatever way he sees fit.
 """
 
 #Graphical User Interface tools
 import tkinter as tk 
 from tkinter import filedialog 
 from PIL import ImageTk 
-
 #Screenshot
 import pyautogui
-
 #Experiment timing tools
 from datetime import datetime 
 from datetime import timedelta 
 import time 
-
-#My own programs
+#Support image processing, equipment, inheritence
 import imagemodification
 from serialcontrol import Motor, Shutter, Laser
 from generichologramcreator import GenericImageCreator
@@ -67,9 +50,11 @@ class SingleImageCreator(GenericImageCreator):
             (arg1) root (Tk) : the root window
         """
         
-        #Set up the main window (700x650), frames[y][x]
-        super().__init__(root, 700, 700, 'Single Hologram Creation')
-        self.frames = self.set_up_frames(self.root, 4, 5) #x, y
+        #Call parent constructor
+        super().__init__(root, 700, 700, 'Single Hologram Creation\tCopyright 2019, Luke Kurlandski, All rights reserved')
+
+        #Set up the frames: x=4 , y=5
+        self.frames = self.set_up_frames(self.root, 4, 5)
         self.frames[0][1].grid(row=0, column=1, pady=10, rowspan=200, columnspan=200, sticky='NW')
         self.frames[1][1].grid(row=1, column=1, pady=10, rowspan=200, columnspan=200, sticky='W')
         self.frames[0][2].grid(row=0, column=2, pady=10, rowspan=200, columnspan=200, sticky='NW', padx=250)
@@ -81,8 +66,10 @@ class SingleImageCreator(GenericImageCreator):
         submenu_file = tk.Menu(self.menu)
         self.menu.add_cascade(label='File', menu=submenu_file)
         submenu_file.add_command(label='Quit', command=self.root.destroy)
-        submenu_file.add_command(label='Save', command=self.save_experiment)
-        submenu_file.add_command(label='Open', command=self.open_experiment)
+        submenu_file.add_command(label='Save As', command=self.save_experiment)
+        submenu_file.add_command(label='Open Experiment', command=self.open_experiment)
+        submenu_file.add_command(label='Open Most Recent', command=lambda: self.open_experiment('Previous Experiment Single Image.txt'))
+        submenu_file.add_command(label='Clear Inputs', command=self.clear_inputs)
         #Serial Menu
         submenu_serial = tk.Menu(self.menu)
         self.menu.add_cascade(label='Serial Configurations', menu=submenu_serial)
@@ -202,7 +189,7 @@ class SingleImageCreator(GenericImageCreator):
         self.label_details.pack() 
         
         #Fill main window with values from sample experiment
-        self.text_communication.insert(tk.END, 'Retrieving previous experiment data.\n\n')
+        self.text_communication.insert(tk.END, 'Retrieving sample experiment data.\n\n')
         self.open_experiment('Sample Experiment Single Image.txt')
             
     def image_select(self):
@@ -289,6 +276,11 @@ class SingleImageCreator(GenericImageCreator):
             error_message = 'Something went wrong while retrieving laser settings from the file.'
             self.laser_settings = self.get_laser_settings()
             
+            self.text_communication.insert(tk.END, 'Storing all raw data in: Previous Experiment Single Image.txt\n')
+            subjects = ['HologramWidth', 'Hologram Height', 'xPix', 'yPix', 'Cropping', 'Laser Maximum Power', 'Laser Pause Period', 'Exposure Lines', 'Ignore Lines', 'Laser Lines']
+            datas = [self.hologram_width, self.hologram_height, self.xPix, self.yPix, self.cropping, self.laser_maximum, self.laser_pause, self.exposure_details.get('1.0','end-1c').rstrip(), self.ignore_details.get('1.0','end-1c').rstrip(), self.laser_details.get('1.0','end-1c').rstrip()]
+            self.store_previous_data('Previous Experiment Single Image.txt', subjects, datas)
+
             error_message = 'All data processed correctly.\n'
             
         except Exception as e:
@@ -483,13 +475,19 @@ class SingleImageCreator(GenericImageCreator):
         laser.ser.close() 
         self.label_end_time.configure(text = 'Experiment End Time: ' + datetime.now().strftime('%H:%M:%S -- %d/%m/%Y'))
 
-    def save_experiment(self):
+    def save_experiment(self, file=None):
         """
         Save the inputs on an experiment in a text file and takes a screenshot.
+
+        Arguments:
+            (arg1) file (string) : optionally include a file to open, rather than letting user choose file
         """
         
         #Get the location and name of file from user
-        file_save = filedialog.asksaveasfilename(initialdir = "/", title = "Save File As", filetypes = (("txt files","*.txt"),("All Files","*.*")))
+        if file==None:
+            file_save = filedialog.asksaveasfilename(initialdir = "/", title = "Save File As", filetypes = (("txt files","*.txt"),("All Files","*.*")))
+        else:
+            file_save = file
         #Save the data
         self.text_communication.insert(tk.END, 'Storing all raw data in: ' + file_save + '\n')
         subjects = ['HologramWidth', 'Hologram Height', 'xPix', 'yPix', 'Cropping', 'Laser Maximum Power', 'Laser Pause Period', 'Exposure Lines', 'Ignore Lines', 'Laser Lines']
@@ -502,6 +500,9 @@ class SingleImageCreator(GenericImageCreator):
     def open_experiment(self, file=None):
         """
         Open a previous experiment.
+
+        Arguments:
+            (arg1) file (string) : optionally include a file to open, rather than letting user choose file
         """
         
         #Let the user choose which file to open
@@ -511,14 +512,7 @@ class SingleImageCreator(GenericImageCreator):
             file_open = file
             
         #Clear all user input
-        self.entry_width.delete(0, tk.END)
-        self.entry_height.delete(0, tk.END)
-        self.entry_Xpix.delete(0, tk.END)
-        self.entry_Ypix.delete(0, tk.END)
-        self.entry_crop.delete(0, tk.END)
-        self.exposure_details.delete(1.0, tk.END)
-        self.ignore_details.delete(1.0, tk.END)
-        self.laser_details.delete(1.0, tk.END)
+        self.clear_inputs()
         
         #Fill main window with values from previous experiment
         self.text_communication.insert(tk.END, 'Retrieving previous experiment data.\n\n')
@@ -547,6 +541,20 @@ class SingleImageCreator(GenericImageCreator):
             self.text_communication.insert(tk.END, error_message) 
         finally:
             file.close()
+
+    def clear_inputs(self):
+        """
+        Clear all input from the main window
+        """
+
+        self.entry_width.delete(0, tk.END)
+        self.entry_height.delete(0, tk.END)
+        self.entry_Xpix.delete(0, tk.END)
+        self.entry_Ypix.delete(0, tk.END)
+        self.entry_crop.delete(0, tk.END)
+        self.exposure_details.delete(1.0, tk.END)
+        self.ignore_details.delete(1.0, tk.END)
+        self.laser_details.delete(1.0, tk.END)
         
 #MainLoop
 root = tk.Tk()
