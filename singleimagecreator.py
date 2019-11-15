@@ -51,7 +51,7 @@ class SingleImageCreator(GenericImageCreator):
         """
         
         #Call parent constructor
-        super().__init__(root, 700, 700, 'Single Hologram Creation\tCopyright 2019, Luke Kurlandski, All rights reserved')
+        super().__init__(root, 700, 700, 'Single Hologram Creation. Copyright 2019, Luke Kurlandski, all rights reserved.')
 
         #Set up the frames: x=4 , y=5
         self.frames = self.set_up_frames(self.root, 4, 5)
@@ -68,7 +68,7 @@ class SingleImageCreator(GenericImageCreator):
         submenu_file.add_command(label='Quit', command=self.root.destroy)
         submenu_file.add_command(label='Save As', command=self.save_experiment)
         submenu_file.add_command(label='Open Experiment', command=self.open_experiment)
-        submenu_file.add_command(label='Open Most Recent', command=lambda: self.open_experiment('Previous Experiment Single Image.txt'))
+        submenu_file.add_command(label='Open Previous', command=lambda: self.open_experiment('Previous Experiment Single Image.txt'))
         submenu_file.add_command(label='Clear Inputs', command=self.clear_inputs)
         #Serial Menu
         submenu_serial = tk.Menu(self.menu)
@@ -85,13 +85,14 @@ class SingleImageCreator(GenericImageCreator):
         #Help Menu
         submenu_help = tk.Menu(self.menu)
         self.menu.add_cascade(label='Help', menu=submenu_help)
-        submenu_help.add_command(label='General Instructions', command=lambda: self.help_window(self.root, 'General Instructions'))
-        submenu_help.add_command(label='Film Information', command=lambda: self.main_help(self.root, 'Film Information'))
-        submenu_help.add_command(label='Image Selection', command=lambda: self.main_help(self.root, 'Image Selection'))
-        submenu_help.add_command(label='Image Modification', command=lambda: self.main_help(self.root, 'Image Modification'))
-        submenu_help.add_command(label='Exposure Information', command=lambda: self.main_help(self.root, 'Exposure Information'))
-        submenu_help.add_command(label='Prepare Experiment', command=lambda: self.main_help(self.root, 'Prepare Experiment'))
-        submenu_help.add_command(label='Run Experiment', command=lambda: self.main_help(self.root, 'Run Experiment'))
+        drcty = 'Help Single Image Creator/'
+        submenu_help.add_command(label='General Instructions', command=lambda: self.help_window(self.root, drcty + 'General Instructions.txt'))
+        submenu_help.add_command(label='Film Information', command=lambda: self.help_window(self.root, drcty + 'Film Information.txt'))
+        submenu_help.add_command(label='Image Selection', command=lambda: self.help_window(self.root, drcty + 'Image Selection.txt'))
+        submenu_help.add_command(label='Image Modification', command=lambda: self.help_window(self.root, drcty + 'Image Modification.txt'))
+        submenu_help.add_command(label='Exposure Information', command=lambda: self.help_window(self.root, drcty + 'Exposure Information.txt'))
+        submenu_help.add_command(label='Prepare Experiment', command=lambda: self.help_window(self.root, drcty + 'Prepare Experiment.txt'))
+        submenu_help.add_command(label='Run Experiment', command=lambda: self.help_window(self.root, drcty + 'Run Experiment.txt'))
         
         #Set up Film Information
         tk.Label(self.frames[0][0], text='Film Information', font="bold").pack()
