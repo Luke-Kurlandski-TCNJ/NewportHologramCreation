@@ -1,5 +1,17 @@
 Film Information
 @author Luke Kurlandski
-October 26, 2019
+November 11, 2019
 
 This information specificaly concerns the Film Information.
+
+Image Width on Film:
+	Enter, in meters, how wide the image should appear on the hologram. 
+	This information is used to determine the path of motion for the motor.
+
+Image Height on Film:
+	Enter, in meters, how tall the image should appear on the hologram. 
+	This information is used to determine the path of motion for the motor.
+
+Estimate Spot Size:
+	Enter, in microns, the diameter of a typical grating that will be produced under the current conditions.
+	This information is purely visual and is not used in any computations.

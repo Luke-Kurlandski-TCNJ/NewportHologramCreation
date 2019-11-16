@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+ 
 """
 Create a single image upon a hologram.
 
@@ -110,10 +110,10 @@ class SingleImageCreator(GenericImageCreator):
         tk.Label(self.frames[1][0], text='Image Selection', font='bold').pack()
         self.button_chsIMG = tk.Button(self.frames[1][0], text='Select an Image', command=self.image_select)
         self.button_chsIMG.pack()
-        tk.Label(self.frames[1][0], text='Desired Horizontal Gratings').pack()
+        tk.Label(self.frames[1][0], text='Desired Horizontal Gratings (opt)').pack()
         self.entry_Xpix = tk.Entry(self.frames[1][0], width = 10)
         self.entry_Xpix.pack()
-        tk.Label(self.frames[1][0], text='Desired Vertical Gratings').pack()
+        tk.Label(self.frames[1][0], text='Desired Vertical Gratings (opt)').pack()
         self.entry_Ypix = tk.Entry(self.frames[1][0], width = 10)
         self.entry_Ypix.pack()
         tk.Label(self.frames[1][0],text='Cropping (opt)').pack()

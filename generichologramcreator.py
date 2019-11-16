@@ -299,6 +299,9 @@ class GenericImageCreator(App):
         except FileNotFoundError:
             raise FileNotFoundError('\nYou have not specified any serial port information for the ' 
                 + port_name + ' and there is no record of information from a prior experiment.\n')
+        except Exception as e:
+            file.close()
+            raise e
     
     def store_previous_data(self, file_name, subjects, datas):
         """
@@ -358,6 +361,7 @@ class GenericImageCreator(App):
         except FileNotFoundError:
             self.text_communication.insert(tk.END, '\tNo previous laser settings detected.\n')
         except Exception:
+            file.close()
             self.text_communication.insert(tk.END, '\tPrevious laser setting were incomplete.\n')
         #Warning and save button
         button_save = tk.Button(window, text = 'Save Correct Settings', command = laser_save)
@@ -393,9 +397,10 @@ class GenericImageCreator(App):
             lines = file.readlines()
             file.close()
             return float(lines[1].rstrip()), float(lines[3].rstrip())
-        
         except FileNotFoundError:
             raise FileNotFoundError('You have not specified any settings for the laser and there is no record of information from a prior experiment.\n')
+        except Exception:
+            file.close()
         
 
 

@@ -1,5 +1,26 @@
 Image Selection
 @author Luke Kurlandski
-October 26, 2019
+November 11, 2019
 
 This information specificaly concerns the Image Selection.
+
+Select an Image:
+	Press this button to open up a file explorer to select an image for printing.
+	This program functions properly with .png and .jpeg images.
+	More image types likely work as well, but this has not been tested rigorously.
+
+Desired Horizontal Gratings:
+	Enter how many grating should appear on the image in the horizontal direction.
+	The image will be downsized to this many pixels in the horizontal direction.
+	If left blank, the program will use the original size of image.
+
+Desired Vertical Gratings:
+	Enter how many grating should appear on the image in the vertical direction.
+	The image will be downsized to this many pixels in the vertical direction.
+	If left blank, the program will use the original size of image.
+
+Cropping:
+	Enter how the image should be cropped in addition to downsized.
+	Use the form: '(x1,y1),(x2,y2)'
+	The program will only print the image within these coordinates: (x1,y1),(x1,y2),(x2,y1),(x2,y2).
+	This function is useful if the user needs to only print a portion of the image.
