@@ -166,7 +166,7 @@ class GenericImageCreator(App):
                     laser_arr[i] = round(mlt_fctr*i,2)
         return exposure_arr, laser_arr
     
-    def setup_serial_port(self, port_name):
+    def setup_serial_port(self, port_name, file_serial):
         """
         Set up the serial port menu and write configurations to a file. 
         
@@ -175,6 +175,7 @@ class GenericImageCreator(App):
             
         Arguments:
             (arg1) port_name (string) : machinery the port is controlling
+            (arg2) file_serial (string) : location to save the information
         """
     
         def serial_save():
@@ -193,7 +194,7 @@ class GenericImageCreator(App):
             bytesize = cb_bytesize.get()
             parity = cb_parity.get()
             #Creating a file for the serial port values
-            file = open('Serial Port Congifurations ' + port_name + '.txt', 'w')
+            file = open(file_serial, 'w')
             file.write(port + '\n' + baudrate + '\n' + timeout + '\n' + stopbits + '\n' + bytesize + '\n' + parity)
             file.close()
             serialport_window.destroy()
@@ -268,12 +269,12 @@ class GenericImageCreator(App):
         #Run the serial port window
         serialport_window.mainloop()
             
-    def get_serial_config(self, port_name):
+    def get_serial_config(self, file_serial):
         """
         Read correct file to get serial configuations for a device. 
         
         Arguments:
-            (arg1) port_name (string) : name of the port to be configured.
+            (arg1) file (string) : location of port configurations
 
         Returns:
             (ret1) port (int) : port number to appended to COM
@@ -286,7 +287,7 @@ class GenericImageCreator(App):
         
         #Read the file and read the data line by line
         try:
-            file = open('Serial Port Congifurations ' + port_name + '.txt', "r")
+            file = open(file_serial, "r")
             lines = file.readlines() 
             port = lines[0].rstrip() 
             baudrate = int(lines[1].rstrip()) 
@@ -318,7 +319,7 @@ class GenericImageCreator(App):
                 file.write(str(i).rstrip() + '\n')
                 file.write(str(j).rstrip() + '\n')
     
-    def laser_settings(self):
+    def laser_settings(self, file_save):
         """
         Saves the laser settings into a file.
         
@@ -327,7 +328,7 @@ class GenericImageCreator(App):
             Modify get_laser_settings as needed.
         
         Arguments:
-            (arg1) previous (float) : the maximum power from previous experiment, overwritten
+            (arg1) file_save (string) : where to save the settings to
         """
         
         def laser_save():
@@ -338,7 +339,7 @@ class GenericImageCreator(App):
             self.text_communication.insert(tk.END, '\tSaving the laser settings.\n')
             laser_subjects = ['Laser Power', 'Power Change Pause']
             laser_data = [entry_power.get(), entry_pause.get()]
-            self.store_previous_data('Laser Settings.txt', laser_subjects, laser_data)
+            self.store_previous_data(file_save, laser_subjects, laser_data)
             window.destroy()
         
         #Laser setting options
@@ -383,7 +384,7 @@ class GenericImageCreator(App):
         self.pop_up_window(self.root, 'Motor Settings')
         tk.Label(text='Motor Settings are coming soon!')
     
-    def get_laser_settings(self): #FIXME: modify into a general, get settings
+    def get_laser_settings(self, file_open): #FIXME: modify into a general, get settings
         """
         Get the laser settings from a file.
         
@@ -393,7 +394,7 @@ class GenericImageCreator(App):
         """
         
         try:
-            file = open('Laser Settings.txt', 'r')
+            file = open(file_open, 'r')
             lines = file.readlines()
             file.close()
             return float(lines[1].rstrip()), float(lines[3].rstrip())

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
- 
+
 """
 Create a single image upon a hologram.
 
@@ -73,9 +73,9 @@ class SingleImageCreator(GenericImageCreator):
         #Serial Menu
         submenu_serial = tk.Menu(self.menu)
         self.menu.add_cascade(label='Serial Configurations', menu=submenu_serial)
-        submenu_serial.add_command(label='Serial Motor', command=lambda: self.setup_serial_port('Motor'))
-        submenu_serial.add_command(label='Serial Shutter', command=lambda: self.setup_serial_port('Shutter'))
-        submenu_serial.add_command(label='Serial Laser', command=lambda: self.setup_serial_port('Laser'))
+        submenu_serial.add_command(label='Serial Motor', command=lambda: self.setup_serial_port('Motor', 'SingleImageCreator/Equipment/Serial Port Configurations Motor.txt'))
+        submenu_serial.add_command(label='Serial Shutter', command=lambda: self.setup_serial_port('Shutter', 'SingleImageCreator/Equipment/Serial Port Configurations Shutter.txt'))
+        submenu_serial.add_command(label='Serial Laser', command=lambda: self.setup_serial_port('Laser','SingleImageCreator/Equipment/Serial Port Configurations Shutter.txt'))
         #Equipment Menu
         submenu_equipment = tk.Menu(self.menu)
         self.menu.add_cascade(label='Equipment Settings', menu=submenu_equipment)
@@ -85,7 +85,7 @@ class SingleImageCreator(GenericImageCreator):
         #Help Menu
         submenu_help = tk.Menu(self.menu)
         self.menu.add_cascade(label='Help', menu=submenu_help)
-        drcty = 'Help Single Image Creator/'
+        drcty = 'Single Image Creator/Help/'
         submenu_help.add_command(label='General Instructions', command=lambda: self.help_window(self.root, drcty + 'General Instructions.txt'))
         submenu_help.add_command(label='Film Information', command=lambda: self.help_window(self.root, drcty + 'Film Information.txt'))
         submenu_help.add_command(label='Image Selection', command=lambda: self.help_window(self.root, drcty + 'Image Selection.txt'))
@@ -123,7 +123,7 @@ class SingleImageCreator(GenericImageCreator):
         #Set up Default Images
         self.label_img_lbl = tk.Label(self.frames[0][1], text = 'Sample Image')
         self.label_img_lbl.pack()
-        self.file = 'Sample Image.png'
+        self.file = 'Images/Sample Image.png'
         self.img_pil = imagemodification.convert_grey_downsize(self.file)
         self.img_tk = ImageTk.PhotoImage(self.img_pil)
         self.label_img = tk.Label(self.frames[0][1], image=self.img_tk)
@@ -200,7 +200,7 @@ class SingleImageCreator(GenericImageCreator):
         
         #Store original PIL image
         self.text_communication.insert(tk.END, 'Finding and storing your image.\n\n')
-        self.file = filedialog.askopenfilename()
+        self.file = filedialog.askopenfilename(title = "Select Image",filetypes = (("png images","*.png"),("jpeg images","*.jpeg"),("All files","*.*")))
         self.img_pil = imagemodification.convert_grey_downsize(self.file, newX=None, newY=None, convert=False)
         
         #Print an appropriately downsized image to the main window
@@ -250,11 +250,11 @@ class SingleImageCreator(GenericImageCreator):
             #Configure the Serial Ports
             self.text_communication.insert(tk.END, 'Retrieving serial port configurations from file.\n')
             error_message = 'Something went wrong getting previous configurations for the Shutter.'
-            self.config_shutter = self.get_serial_config('Shutter')
+            self.config_shutter = self.get_serial_config('SingleImageCreator/Equipment/Serial Port Configurations Shutter.txt')
             error_message = 'Something went wrong getting previous configurations for the Motor.'
-            self.config_motor = self.get_serial_config('Motor')
+            self.config_motor = self.get_serial_config('SingleImageCreator/Equipment/Serial Port Configurations Motor.txt')
             error_message = 'Something went wrong getting previous configurations for the Laser.'
-            self.config_laser = self.get_serial_config('Laser')
+            self.config_laser = self.get_serial_config('SingleImageCreator/Equipment/Serial Port Configurations Laser.txt')
             
             #Modify the image, convert into an array, update xPix and yPix (cropping), dots per inch
             self.text_communication.insert(tk.END, 'Modifying the image and processing into an array.\n')
@@ -275,7 +275,7 @@ class SingleImageCreator(GenericImageCreator):
             #Get the laser settings from the file
             self.text_communication.insert(tk.END, 'Getting up to date laser settings.\n')
             error_message = 'Something went wrong while retrieving laser settings from the file.'
-            self.laser_settings = self.get_laser_settings()
+            self.laser_settings = self.get_laser_settings('SingleImageCreator/Equipment/Settings Laser.txt')
             
             self.text_communication.insert(tk.END, 'Storing all raw data in: Previous Experiment Single Image.txt\n')
             subjects = ['HologramWidth', 'Hologram Height', 'xPix', 'yPix', 'Cropping', 'Laser Maximum Power', 'Laser Pause Period', 'Exposure Lines', 'Ignore Lines', 'Laser Lines']
@@ -366,9 +366,7 @@ class SingleImageCreator(GenericImageCreator):
         run_time += hologram_height / .001
         return run_time
     
-    def run_experiment(self, hologram_width, hologram_height, xPix, yPix, 
-        config_shutter, config_motor, config_laser, img_as_arr, exposure_arr, 
-        laser_arr, laser_settings):
+    def run_experiment(self, hologram_width, hologram_height, xPix, yPix, config_shutter, config_motor, config_laser, img_as_arr, exposure_arr, laser_arr, laser_settings):
         """
         Run the experiment by moving the motor and opening and closing the shutter.
         
@@ -486,7 +484,7 @@ class SingleImageCreator(GenericImageCreator):
         
         #Get the location and name of file from user
         if file==None:
-            file_save = filedialog.asksaveasfilename(initialdir = "/", title = "Save File As", filetypes = (("txt files","*.txt"),("All Files","*.*")))
+            file_save = filedialog.asksaveasfilename('''initialdir = "/"''', title = "Save Experiment as .txt", filetypes = (("txt files","*.txt"),("All Files","*.*")))
         else:
             file_save = file
         #Save the data
@@ -508,7 +506,7 @@ class SingleImageCreator(GenericImageCreator):
         
         #Let the user choose which file to open
         if file == None:
-            file_open = root.filename = filedialog.askopenfilename(initialdir = "/",title = "Select file",filetypes = (("txt files","*.txt"),("All files","*.*")))
+            file_open = root.filename = filedialog.askopenfilename('''initialdir = "/",'''title = "Open Experiment",filetypes = (("txt files","*.txt"),("All files","*.*")))
         else:
             file_open = file
             
