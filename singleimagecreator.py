@@ -191,7 +191,7 @@ class SingleImageCreator(GenericImageCreator):
         
         #Fill main window with values from sample experiment
         self.text_communication.insert(tk.END, 'Retrieving sample experiment data.\n\n')
-        self.open_experiment('Sample Experiment Single Image.txt')
+        self.open_experiment('SingleImageCreator/Experiments/Sample Experiment Single Image.txt')
             
     def image_select(self):
         """
@@ -280,7 +280,7 @@ class SingleImageCreator(GenericImageCreator):
             self.text_communication.insert(tk.END, 'Storing all raw data in: Previous Experiment Single Image.txt\n')
             subjects = ['HologramWidth', 'Hologram Height', 'xPix', 'yPix', 'Cropping', 'Laser Maximum Power', 'Laser Pause Period', 'Exposure Lines', 'Ignore Lines', 'Laser Lines']
             datas = [self.hologram_width, self.hologram_height, self.xPix, self.yPix, self.cropping, self.laser_maximum, self.laser_pause, self.exposure_details.get('1.0','end-1c').rstrip(), self.ignore_details.get('1.0','end-1c').rstrip(), self.laser_details.get('1.0','end-1c').rstrip()]
-            self.store_previous_data('Previous Experiment Single Image.txt', subjects, datas)
+            self.store_previous_data('SingleImageCreator/Experiments/Previous Experiment Single Image.txt', subjects, datas)
 
             error_message = 'All data processed correctly.\n'
             
@@ -493,7 +493,11 @@ class SingleImageCreator(GenericImageCreator):
         datas = [self.hologram_width, self.hologram_height, self.xPix, self.yPix, self.cropping, self.laser_maximum, self.laser_pause, self.exposure_details.get('1.0','end-1c').rstrip(), self.ignore_details.get('1.0','end-1c').rstrip(), self.laser_details.get('1.0','end-1c').rstrip()]
         self.store_previous_data(file_save, subjects, datas)
         #Take screenshot and save in same place
-        myScreenshot = pyautogui.screenshot()
+        x1 = self.root.winfo_x()
+        y1 = self.root.winfo_y()
+        x2 = x1 + self.root.winfo_width()
+        y2 = y1 + self.root.winfo_height()
+        myScreenshot = pyautogui.screenshot(region = (x1,y1,x2,y2))
         myScreenshot.save(file_save.replace('.txt','.png'))
 
     def open_experiment(self, file=None):
