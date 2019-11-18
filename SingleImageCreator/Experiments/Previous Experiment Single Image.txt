@@ -1,0 +1,28 @@
+HologramWidth
+0.01
+Hologram Height
+0.01
+xPix
+189
+yPix
+189
+Cropping
+(10,10),(199,199)
+Laser Maximum Power
+22.0
+Laser Pause Period
+0.0
+Exposure Lines
+[0,50]:5
+[50,100]:4
+[100,150]:3
+[150,200]:2
+[200,256]:1
+Ignore Lines
+[0,1]
+[125,130]
+[255,256]
+Laser Lines
+[0,100]:10
+[100,200]:15
+[200,256]:20

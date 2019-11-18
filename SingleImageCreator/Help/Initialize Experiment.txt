@@ -1,0 +1,14 @@
+Initialize Experiment
+
+@author Luke Kurlandski
+
+October 26, 2019
+
+
+
+This information specificaly concerns the Initialize Experiment.
+
+Update all Information
+	Select this button to pull data from the main window and stored data from text files.
+	Data will processed and stored into Previous Experiment text file.
+	It is nessecary for the user to press this button before attempting a Save As.
