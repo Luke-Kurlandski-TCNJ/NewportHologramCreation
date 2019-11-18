@@ -86,7 +86,6 @@ class SingleImageCreator(GenericImageCreator):
         submenu_serial.add_command(label='Serial Motor', command=lambda: self.setup_serial_port('Motor'))
         submenu_serial.add_command(label='Serial Shutter', command=lambda: self.setup_serial_port('Shutter'))
         submenu_serial.add_command(label='Serial Laser', command=lambda: self.setup_serial_port('Laser'))
-        submenu_serial.add_command(label='Laser Settings', command=self.laser_settings)
         #Help Menu
         submenu_help = tk.Menu(self.menu)
         self.menu.add_cascade(label='Help', menu=submenu_help)
@@ -97,6 +96,7 @@ class SingleImageCreator(GenericImageCreator):
         submenu_help.add_command(label='Exposure Information', command=lambda: self.main_help(self.root, 'Exposure Information'))
         submenu_help.add_command(label='Prepare Experiment', command=lambda: self.main_help(self.root, 'Prepare Experiment'))
         submenu_help.add_command(label='Run Experiment', command=lambda: self.main_help(self.root, 'Run Experiment'))
+        self.menu.add_command(label='Laser Settings', command=self.laser_settings)
         
         #Set up Film Size
         tk.Label(self.frames[0][0], text='1) Film Information', font="bold").pack()
@@ -421,8 +421,10 @@ class SingleImageCreator(GenericImageCreator):
             error_message = 'Something went wrong establishing a serial connection with the laser.'
             laser = Laser.from_arguments(config_laser) #FIXME
             
+            error_message = 'Something went wrong configuring the laser'
             #turn on and configure the laser #FIXME
             laser.configure_settings(laser_settings)
+            error_message = 'Something went wrong reading laser info'
             laser.read_power() 
             
             #Configure each axis, move home
@@ -437,7 +439,7 @@ class SingleImageCreator(GenericImageCreator):
                 onRow = False 
                 for j in range(0, xPix):
                     #Handle pause or abort
-                    error_message = 'Something went wrong printing the image at ' + i + ',' + j + '.'
+                    error_message = 'Something went wrong printing the image at ' + str(i) + ',' + str(j) + '.'
                     while self.listbox.curselection != 0:
                         if self.listbox.curselection == 1:
                             time.sleep(1)
@@ -456,7 +458,8 @@ class SingleImageCreator(GenericImageCreator):
             error_message = 'All experimental procedures executed properly'
                         
         except Exception as e:
-            self.text_communication.insert(tk.END, '\t' + str(e) + '\n')
+            self.text_communication.insert(tk.END, error_message)
+            self.text_communication.insert(tk.END, '\n\t' + str(e) + '\n')
             self.text_communication.insert(tk.END, 'Closing all serial ports due to malfunction.\n')
             motor.ser.close()
             shutter.ser.close()

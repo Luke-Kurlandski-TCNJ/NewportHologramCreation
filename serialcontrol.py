@@ -203,8 +203,9 @@ class Laser(Control):
         Start up the laser by monitoring its power level.
         """
         
-        self.ser.write('?P\r'.encode())
+        self.writeCommand('?P')
         str_power = str(self.ser.read(30))
+        print(str_power)
         float_power = float(str_power[8:12])
         #If the laser is on, make inactive
         if float_power >= 0.4:

@@ -3,9 +3,9 @@ HologramWidth
 Hologram Height
 0.02
 xPix
-200
+20
 yPix
-200
+20
 Cropping
 
 Laser Maximum Power

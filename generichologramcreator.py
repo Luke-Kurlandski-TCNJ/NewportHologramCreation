@@ -449,8 +449,10 @@ class GenericImageCreator:
             """
             
             self.text_communication.insert(tk.END, '\tSaving the laser settings.\n')
-            laser_subjects = ['Laser Power']
-            laser_data = [entry_power.get()] 
+            laser_subjects = []
+            laser_subjects.append('Laser Power')
+            laser_data = []
+            laser_data.append(entry_power.get()) 
             self.store_previous_data('Laser Settings.txt', laser_subjects, laser_data)
             window.destroy()
         
@@ -480,14 +482,14 @@ class GenericImageCreator:
         
         Returns:
             (ret1) lines[1] (float) : the maximum power read from the file
+            (ret2) None (None) : placeholder for more settings to be implemented
         """
         
         try:
             file = open('Laser Settings.txt', 'r')
             lines = file.readlines()
-            print(lines)
             file.close()
-            return float(lines[1].rstrip())
+            return float(lines[1].rstrip()), None
         
         except FileNotFoundError:
             raise FileNotFoundError('You have not specified any settings for the ' 
