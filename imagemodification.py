@@ -5,7 +5,8 @@ Created on Mon Oct 14 11:39:14 2019
 @author: Luke Kurlandski and Matthew Van Soelon
 """
 
-from PIL import Image #package to support image work
+#Support image processing
+from PIL import Image, ImageTk
 
 def convert_grey_downsize(image_file, newX=None, newY=None, convert=False):
     """
@@ -30,6 +31,32 @@ def convert_grey_downsize(image_file, newX=None, newY=None, convert=False):
     if convert == True:
         image = image.convert('L')
     return image
+
+def image_for_window(max_width, max_height, img_pil, img_file):
+    """
+    Downsizes and converts to a TK image for printing images to a main window.
+    
+    Arguments:
+        (arg1) max_width (int) : maximum width of image allowed in window
+        (arg2) max_height (int) : maximum height of image allowed in window
+        (arg3) img_pil (Pil Image) : image to print
+        (arg4) img_file (string) : file of the image to print
+        
+    Returns:
+        (ret1) img_Tk (PIL PhotoImage) : Tk image appropriately sized
+    """
+    
+    xPix, yPix = img_pil.size
+    if xPix > max_width or yPix > max_height:
+        if xPix > max_width and yPix <= max_height:
+            img_Tk = ImageTk.PhotoImage(convert_grey_downsize(img_file, newX=200, newY=yPix, convert=True))
+        if yPix > max_height and xPix <= max_width:
+            img_Tk = ImageTk.PhotoImage(convert_grey_downsize(img_file, newX=xPix, newY=200, convert=True))
+        if xPix > max_width and yPix > max_height:
+            img_Tk = ImageTk.PhotoImage(convert_grey_downsize(img_file, newX=200, newY=200, convert=True))
+    else:
+        img_Tk = ImageTk.PhotoImage(img_pil)
+    return img_Tk
 
 def get_image_array(image):
     """

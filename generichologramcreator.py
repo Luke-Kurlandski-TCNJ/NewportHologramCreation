@@ -21,15 +21,13 @@ Dr. David McGee has permission to use this code in whatever way he sees fit.
 #Graphical User Interface tools
 import tkinter as tk
 from tkinter import ttk
-
 #Communication with serial ports
 import serial 
 import serial.tools.list_ports 
-
 #Support image processing
 import imagemodification
 import numpy
-
+#Support Inheritence
 from app import App
 
 class GenericImageCreator(App):
@@ -37,9 +35,7 @@ class GenericImageCreator(App):
     Create various kinds of images on a hologram.
     
     Notes:
-        Parent class
-        Place Tkinter stuff at the top. This will eventually be moved into its
-            own class.
+        Child class, inherits from App.
     """
     
     def __init__(self, root, window_width, window_height, window_title):
@@ -88,7 +84,6 @@ class GenericImageCreator(App):
         array_window.grid_rowconfigure(0, weight = 1)
         self.set_up_menu(array_window)
         self.apply_scrollbars(array_window, text_arr, True, True)
-        
         #Print the array to screen
         img_as_arr_ret = imagemodification.get_image_array(img_pil)
         img_as_arr = numpy.transpose(img_as_arr_ret)
@@ -106,7 +101,8 @@ class GenericImageCreator(App):
     
     def generate_exposure_details(self, exposure, ignore, laser):
         """
-        Generate the arrays to describe laser exposure lengths.
+        Generate the arrays to describe laser exposure lengths and laser power
+            levels.
         
         Arguments:
             (arg1) exposure (list[string]) : special strings containing exposure details
@@ -136,7 +132,6 @@ class GenericImageCreator(App):
                 mlt_fctr = float(line[bracket+2:x])
                 for i in range(start,end):
                     exposure_arr[i] = round(mlt_fctr*i,2)
-                    
         #Modify exposure array and process ignore
         for line in ignore:
             comma = line.find(',')
@@ -145,7 +140,6 @@ class GenericImageCreator(App):
             end = int(line[comma+1:bracket])
             for i in range(start,end):
                 exposure_arr[i] = 0
-                
         #Generate laser array and process laser
         laser_arr = []
         for i in range(0,256):
@@ -169,9 +163,6 @@ class GenericImageCreator(App):
     def setup_serial_port(self, port_name, file_serial):
         """
         Set up the serial port menu and write configurations to a file. 
-        
-        Notes:
-            Writes user choices in: 'Serial Port Congifurations ' + port_name + '.txt'
             
         Arguments:
             (arg1) port_name (string) : machinery the port is controlling
@@ -181,37 +172,23 @@ class GenericImageCreator(App):
         def serial_save():
             """
             Save the user selected configurations in a .txt file.
-            
-            Notes: 
-                Nested function allows for elegant access of the combo boxes
-                Nested functions may cause problems with inheritence
             """
             
+            #Get the configurations from input
             port = cb_port.get()
             baudrate = cb_baudrate.get()
             timeout = cb_timeout.get()
             stopbits = cb_stopbits.get()
             bytesize = cb_bytesize.get()
             parity = cb_parity.get()
-            #Creating a file for the serial port values
+            #Save the configurations to a file
             file = open(file_serial, 'w')
             file.write(port + '\n' + baudrate + '\n' + timeout + '\n' + stopbits + '\n' + bytesize + '\n' + parity)
             file.close()
             serialport_window.destroy()
-            
-        #Create serial port window
-        serialport_window = tk.Toplevel(self.root) 
-        serialport_window.title('Serial Port: ' + port_name)
-        serialport_window.resizable(False, False)  
-        serialport_window_height = 200
-        serialport_window_width = 280
-        screen_width = serialport_window.winfo_screenwidth()
-        screen_height = serialport_window.winfo_screenheight()
-        x_cordinate = int((screen_width/2) - (serialport_window_width/2))
-        y_cordinate = int((screen_height/2) - (serialport_window_height/2))
-        serialport_window.geometry("{}x{}+{}+{}".format(serialport_window_width, serialport_window_height, x_cordinate, y_cordinate))
         
-        #Create a menu bar in the serial port window
+        #Create a serial port window
+        serialport_window = self.pop_up_window(self.root, 'Serial Port: ' + port_name, 200, 280, False)
         self.set_up_menu(serialport_window)
         
         #Create labels for the port window
@@ -249,7 +226,7 @@ class GenericImageCreator(App):
         
         #Get the previous serial configurations from the file and print to combo boxes
         try: 
-            file = open('Serial Port Congifurations ' + port_name + '.txt', 'r')
+            file = open(file_serial, 'r')
             lines = file.readlines()
             cb_port.set(lines[0].rstrip())
             cb_baudrate.set(lines[1].rstrip())
@@ -258,7 +235,7 @@ class GenericImageCreator(App):
             cb_bytesize.set(lines[4].rstrip())
             cb_parity.set(lines[5].rstrip())
         except FileNotFoundError as e:
-            message = '\nCannot find a previous instance of: \'Serial Port Congifurations ' + port_name + '.txt\''
+            message = '\nCannot find a previous instance of: \'' + file_serial
             message += str(e) 
             self.text_communication.insert(tk.END, message)
             

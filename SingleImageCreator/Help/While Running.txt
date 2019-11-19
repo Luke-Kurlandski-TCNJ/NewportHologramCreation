@@ -1,5 +1,31 @@
-Run Experiment
-@author Luke Kurlandski
-October 26, 2019
+While Running
 
-This information specificaly concerns the Run Experiment.
+@author Luke Kurlandski
+
+November 18, 2019
+
+
+
+This information specificaly concerns the While Running.
+
+Listbox
+	Run - when selected, the program will run
+	Pause - when selected the program will pause; 
+		press run to un-pause
+	Abort - when selected the program will cancel the current experiment;
+		user may start a new experiment immedietly after
+
+Start Time
+	Time user started the experiment, when the run button was pushed.
+
+Experiment End Time
+	Records when the experiment terminates.
+
+End Time Estimate
+	Performs an estimation as to how long the experiment will take.
+
+Current Location
+	Describes the current pixel being exposed.
+
+Details
+	Descries the current pixel value, laser power value, and exposure time for the current pixel.

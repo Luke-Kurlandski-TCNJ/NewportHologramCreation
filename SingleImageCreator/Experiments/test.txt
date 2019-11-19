@@ -3,11 +3,11 @@ HologramWidth
 Hologram Height
 0.01
 xPix
-30
+189
 yPix
-30
+189
 Cropping
-(20,20),(50,50)
+
 Laser Maximum Power
 22.0
 Laser Pause Period
