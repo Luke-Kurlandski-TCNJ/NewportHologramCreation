@@ -1,0 +1,75 @@
+Menu
+@author Luke Kurlandski
+November 20, 2019
+
+This information specifically concerns the Menu.
+
+File
+
+Quit
+	Select this button to safely close the application.
+	If an experiment is running, it is advised that you first abort the experiment, wait for the communication window 
+		to report that all serial ports were closed, then select the close button
+
+Save As
+	Select this button to save the input of the experiment in a text file for later use.
+	Save the file in the default directory, SingleImageCreator/Experiments/
+	We advice you name the file with todays date and a brief name of the experiment: (xx-xx-xx) - name
+	The .txt extension will be added automatically.
+	A screenshot will be taken of the main window and saved with the same name you used above; 
+		the .txt extension will be replaced by .png
+	At the conclusion of the experiment, these files will be overwritten with a new (identical) .txt file and
+		a new screenshot; this allows the actual duration of the experiment to be captured and recorded.
+
+Open
+	Open any previous experiment stored in a .txt file: 
+		SingleImageCreator/Experiments
+	Note if the experiment is of improper format, the program may crash.
+
+Open Sample Experiment
+	Open a sample experiment to display how to use this program: 
+		SingleImageCreator/Experiments/Sample Experiment Single Image Creator.txt
+
+Open Recent Experiment
+	Open the previous experiment, which is automatically saved after pressing the ‘Update all Information’ button:
+		SingleImageCreator/Experiments/Previous Experiment Single Image Creator.txt
+
+Serial Configurations
+
+Configure the serial port settings with each of the following devices. 
+These settings are saved and will be used automatically in following experiments.
+The devices use the following settings:
+
+Motor:
+	Port: user defined
+	Baudrate: 19200
+	Timeout: 0.1
+	Stopbits: 1
+	Bytesize: 8
+	Parity: None
+Laser:
+	Port: user defined
+	Baudrate: 19200
+	Timeout: 0.1
+	Stopbits: 1
+	Bytesize: 8
+	Parity: None
+Shutter:
+	Port: user defined
+	Baudrate: 9600
+	Timeout: 0.1
+	Stopbits: 1
+	Bytesize: 8
+	Parity: None
+
+Equipment Settings
+
+Laser
+
+Maximum Laser Power
+	Lasers have a maximum power they are permitted to use.
+	The user MUST specify the CORRECT laser power in miliwatts.
+
+Power Change Pause
+	Laser take several seconds to change their power level.
+	The user should specify how long they want the laser to pause between power changes.

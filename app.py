@@ -36,7 +36,7 @@ class App:
         x_cordinate = int((screen_width/2) - (window_width/2))
         y_cordinate = int((screen_height/2) - (window_height/2))
         self.root.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate+200, y_cordinate-40))
-        self.root.title(window_title)
+        self.root.title(window_title + ' -- Copyright 2019, Luke Kurlandski, All Rights Reserved.')
 
     def set_up_frames(self, window, frames_horizontal, frames_vertical):
         """

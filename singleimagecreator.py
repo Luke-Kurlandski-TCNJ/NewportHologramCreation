@@ -22,7 +22,7 @@ Dr. David McGee has permission to use this code in whatever way he sees fit.
 #Graphical User Interface tools
 import tkinter as tk 
 from tkinter import filedialog 
-from PIL import ImageGrab, ImageTk
+from PIL import ImageGrab
 #Experiment timing tools
 from datetime import datetime 
 from datetime import timedelta 
@@ -39,6 +39,8 @@ class SingleImageCreator(GenericImageCreator):
     Notes:
         Child class, derives from GenericImageCreator. During execution, this 
             program will become unresponsive due to the movement of stages.
+        I have observed some extremely bizarre behavior when navigating directories, 
+            possible source of FileNotFoundError.
     """
     
     def __init__(self, root):
@@ -50,14 +52,14 @@ class SingleImageCreator(GenericImageCreator):
         """
         
         #Call parent constructor
-        super().__init__(root, 700, 700, 'Single Hologram Creation. Copyright 2019, Luke Kurlandski, all rights reserved.')
+        super().__init__(root, 700, 700, 'Single Hologram Creation')
 
         #Set up the frames: x=4 , y=5
         self.frames = self.set_up_frames(self.root, 4, 5)
         self.frames[0][1].grid(row=0, column=1, pady=10, rowspan=200, columnspan=200, sticky='NW')
         self.frames[1][1].grid(row=1, column=1, pady=10, rowspan=200, columnspan=200, sticky='W')
         self.frames[0][2].grid(row=0, column=2, pady=10, rowspan=200, columnspan=200, sticky='NW', padx=250)
-        self.data_colleted = False #only collect data once
+        self.data_collected = False #only collect data once
 
         #Set up main menu
         self.menu = tk.Menu(self.root)
@@ -72,7 +74,6 @@ class SingleImageCreator(GenericImageCreator):
         submenu_file.add_command(label='Open Sample', command=lambda: self.open_experiment('SingleImageCreator/Experiments/Sample Experiment Single Image.txt'))
         submenu_file.add_command(label='Clear Inputs', command=self.clear_inputs)
         #Serial Menu: 
-        #FIXME: I have observed some extremely bizarre behavior here,possible source of FileNotFoundError
         submenu_serial = tk.Menu(self.menu)
         self.menu.add_cascade(label='Serial Configurations', menu=submenu_serial)
         submenu_serial.add_command(label='Serial Motor', command=lambda: self.setup_serial_port('Motor', 'SingleImageCreator/Equipment/Serial Port Congifurations Motor.txt'))
@@ -83,7 +84,7 @@ class SingleImageCreator(GenericImageCreator):
         self.menu.add_cascade(label='Equipment Settings', menu=submenu_equipment)
         submenu_equipment.add_command(label='Motor', command=self.motor_settings)
         submenu_equipment.add_command(label='Shutter', command=self.shutter_settings)
-        submenu_equipment.add_command(label='Laser', command=self.laser_settings)
+        submenu_equipment.add_command(label='Laser', command=lambda: self.laser_settings('SingleImageCreator/Equipment/Settings Laser.txt'))
         #Help Menu
         submenu_help = tk.Menu(self.menu)
         self.menu.add_cascade(label='Help', menu=submenu_help)
@@ -94,6 +95,7 @@ class SingleImageCreator(GenericImageCreator):
         submenu_help.add_command(label='Exposure Information', command=lambda: self.help_window(self.root, drcty + 'Exposure Information.txt'))
         submenu_help.add_command(label='Initialize Experiment', command=lambda: self.help_window(self.root, drcty + 'Initialize Experiment.txt'))
         submenu_help.add_command(label='While Running', command=lambda: self.help_window(self.root, drcty + 'While Running.txt'))
+        submenu_help.add_command(label='Menu Guide', command=lambda: self.help_window(self.root, drcty + 'Menu.txt'))
         
         #Set up Film Information
         tk.Label(self.frames[0][0], text='Film Information', font="bold").pack()
@@ -133,6 +135,7 @@ class SingleImageCreator(GenericImageCreator):
         self.label_img_mod = tk.Label(self.frames[1][1])
         self.label_img_mod.pack()     
         self.xPix, self.yPix = self.modify_image(200, 200, '')
+        self.text_communication.delete(1.0,tk.END)
 
         #Set up Exposure Information
         tk.Label(self.frames[0][2], text='Exposure Information', font="bold").pack()
@@ -289,14 +292,16 @@ class SingleImageCreator(GenericImageCreator):
             self.store_previous_data('SingleImageCreator/Experiments/Previous Experiment Single Image.txt', subjects, datas)
             
             #The data is processed correctly
-            error_message = 'All data processed correctly.\n'
+            error_message = 'All data processed correctly.'
+            self.data_colleted=True
             
         except Exception as e:
             self.text_communication.insert(tk.END, str(e) + '\n\n')
+            self.data_collected = False
             return
         
         finally:
-            self.text_communication.insert(tk.END, error_message + '\n')
+            self.text_communication.insert(tk.END, error_message + '\n\n')
         self.text_communication.insert(tk.END, '\n')
         
     def modify_image(self, xPix, yPix, cropping):
@@ -484,9 +489,12 @@ class SingleImageCreator(GenericImageCreator):
         Arguments:
             (arg1) file (string) : optionally include a file to open, rather than letting user choose file
         """
-        #Update all data from main window if nessecary
+        #Indicate the user needs to press the update all data button
         if self.data_collected == False:
-            self.get_data()
+            window_pop_up = self.pop_up_window(self.root, 'Cannot Save', window_width=300)
+            self.set_up_menu(window_pop_up)
+            tk.Label(window_pop_up, text = 'Select update all information before saving.').pack()
+            return
         #Get the location and name of file from user
         if file==None:
             self.file_save = filedialog.asksaveasfilename(initialdir = 'SingleImageCreator/Experiments', title = 'Format: \'(mm-dd-yy)[name]\'', filetypes = (("txt files","*.txt"),("All Files","*.*")), defaultextension = '.txt')

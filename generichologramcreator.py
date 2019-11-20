@@ -297,7 +297,7 @@ class GenericImageCreator(App):
     
     def laser_settings(self, file_save):
         """
-        Saves the laser settings into a file.
+        Displays a list of laser settings and saves/retrieves into a file.
         
         Notes:
             Easily expandable to include more settings.
@@ -312,7 +312,7 @@ class GenericImageCreator(App):
             Saves the laser settings.
             """
             
-            self.text_communication.insert(tk.END, '\tSaving the laser settings.\n')
+            self.text_communication.insert(tk.END, 'Saving the laser settings: ' +file_save+ '\n\n')
             laser_subjects = ['Laser Power', 'Power Change Pause']
             laser_data = [entry_power.get(), entry_pause.get()]
             self.store_previous_data(file_save, laser_subjects, laser_data)
@@ -329,36 +329,42 @@ class GenericImageCreator(App):
         entry_pause.grid(row=1, column=1, sticky = tk.W)
         #Get previous configurations and fill
         try:
-            self.text_communication.insert(tk.END, 'Getting previous experiment\'s laser settings.\n')
-            file = open('Laser Settings.txt', 'r')
+            self.text_communication.insert(tk.END, 'Getting previous experiment\'s laser settings.\n\n')
+            file = open(file_save, 'r')
             lines = file.readlines()
             entry_power.insert(0, lines[1])
             entry_pause.insert(0, lines[3])
             file.close()
         except FileNotFoundError:
-            self.text_communication.insert(tk.END, '\tNo previous laser settings detected.\n')
+            self.text_communication.insert(tk.END, '\tNo previous laser settings detected.\n\n')
         except Exception:
             file.close()
-            self.text_communication.insert(tk.END, '\tPrevious laser setting were incomplete.\n')
+            self.text_communication.insert(tk.END, '\tPrevious laser setting were incomplete.\n\n')
         #Warning and save button
         button_save = tk.Button(window, text = 'Save Correct Settings', command = laser_save)
         button_save.grid(row=2, column=0, columnspan=2)
     
     def shutter_settings(self):
         """
-        FIXME: implement
+        Displays a list of shutter settings and saves/retrieves into a file.
+        
+        Notes:
+            FIXME: implement
         """
         
-        self.pop_up_window(self.root, 'Shutter Settings')
-        tk.Label(text='Shutter Settings are coming soon!')
+        window_pop_up = self.pop_up_window(self.root, 'Shutter Settings')
+        tk.Label(window_pop_up, text='Shutter Settings not implemented!').pack()
         
     def motor_settings(self):
         """
-        FIXME: implement
+        Displays a list of motor settings and saves/retrieves into a file.
+        
+        Notes:
+            FIXME: implement
         """ 
         
-        self.pop_up_window(self.root, 'Motor Settings')
-        tk.Label(text='Motor Settings are coming soon!')
+        window_pop_up = self.pop_up_window(self.root, 'Motor Settings')
+        tk.Label(window_pop_up, text='Motor Settings not implemented!').pack()
     
     def get_laser_settings(self, file_open): 
         """
