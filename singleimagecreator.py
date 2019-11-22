@@ -293,7 +293,7 @@ class SingleImageCreator(GenericImageCreator):
             
             #The data is processed correctly
             error_message = 'All data processed correctly.'
-            self.data_colleted=True
+            self.data_collected=True
             
         except Exception as e:
             self.text_communication.insert(tk.END, str(e) + '\n\n')
