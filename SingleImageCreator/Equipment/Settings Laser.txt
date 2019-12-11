@@ -1,4 +1,0 @@
-Laser Power
-22
-Power Change Pause
-10
