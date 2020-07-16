@@ -127,6 +127,38 @@ class HologramCreator(App):
         self.label_details = tk.Label(frame, text='Details (pxl,pwr,time) : ')
         self.label_details.pack()
 
+    def setup_grating_options(self, frame:tk.Frame):
+        """
+        Set up grating options entry widgets
+        """
+
+        tk.Label(frame, text='Rotation Angle', font='bold').grid(row=0, column=0)
+        self.entry_angle = tk.Entry(frame, width = 15)
+        self.entry_angle.grid(row=1, column=0)
+
+        tk.Label(frame, text='Grating Type', font='bold').grid(row=0, column=1)
+        self.types = {'SawTooth', 'Triangle'}
+        self.type_var = tk.StringVar(frame)
+        self.type_var.set('SawTooth')
+        tk.OptionMenu(frame, self.type_var, *self.types).grid(row=1, column=1)
+
+        tk.Label(frame, text='Ymin', font='bold').grid(row=2, column=0)
+        self.entry_ymin = tk.Entry(frame, width = 15)
+        self.entry_ymin.grid(row=3, column = 0)
+
+        tk.Label(frame, text='Ymax', font='bold').grid(row=2, column=1)
+        self.entry_ymax = tk.Entry(frame, width = 15)
+        self.entry_ymax.grid(row=3, column = 1)
+
+        tk.Label(frame, text='Period Width (pixels)', font='bold').grid(row=4, column=0)
+        self.entry_period = tk.Entry(frame, width = 15)
+        self.entry_period.grid(row=5, column = 0)
+
+        self.g_reverse = tk.IntVar()
+        tk.Checkbutton(frame, text = 'Reverse Grating', variable = self.g_reverse).grid(row=5, column=1)
+
+
+
     def setup_exposure_details(self, frame:tk.Frame):
         """
         Set up the exposure textbox.
@@ -250,7 +282,7 @@ class HologramCreator(App):
             map_timing = self.process_user_string(input_exposure, 
                 {'Gradient Range':gradient_range})
         except Exception as e:
-            raise e#Exception('Error: exposure string is improperly formatted.')
+            raise e #Exception('Error: exposure string is improperly formatted.')
         try:
             ignore_override = self.process_user_string(input_ignore, 
                 {'Gradient Range':gradient_range})

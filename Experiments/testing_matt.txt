@@ -29,7 +29,7 @@ Image File::
 /Users/matthewvansoelen/Desktop/BackGrounds/PDrawsBackground.jpeg
 ####################
 item_list::
-[Your Image SawTooth 20, Your Image SawTooth 20]
+[Your Image Triangle 0, Your Image Triangle 0, Your Image Triangle 0, Your Image Triangle 0]
 ####################
 Motor Command Pause::
 .1

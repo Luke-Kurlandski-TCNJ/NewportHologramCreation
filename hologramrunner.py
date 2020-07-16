@@ -14,11 +14,18 @@ import tkinter as tk
 
 from app import App
 from singleimage import SingleImage
+from slm_image import SLM_Image
 
 def single_image():
 	root.destroy()
 	new_root = tk.Tk()
 	app = SingleImage(new_root)
+	app.root.mainloop()
+
+def slm_image():
+	root.destroy()
+	new_root = tk.Tk()
+	app = SLM_Image(new_root)
 	app.root.mainloop()
 
 root = tk.Tk()
@@ -33,4 +40,7 @@ tk.Label(chooser.root, text='Select an Experiment').pack()
 button_singleimage = tk.Button(chooser.root, text='Single Image', 
 	command=single_image)
 button_singleimage.pack()
+
+button_slm_image = tk.Button(chooser.root, text='SLM Image', command=slm_image)
+button_slm_image.pack()
 root.mainloop()

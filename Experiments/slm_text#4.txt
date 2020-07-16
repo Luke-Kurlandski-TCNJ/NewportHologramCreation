@@ -26,10 +26,7 @@ Strings Laser::
 [0,256]:6.72
 ####################
 Image File::
-/Users/matthewvansoelen/Desktop/BackGrounds/PDrawsBackground.jpeg
-####################
-item_list::
-[Your Image SawTooth 20, Your Image SawTooth 20]
+/Users/matthewvansoelen/Desktop/inpirational.png
 ####################
 Motor Command Pause::
 .1

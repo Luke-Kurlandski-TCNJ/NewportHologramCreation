@@ -17,7 +17,6 @@ from datetime import timedelta
 import time
 import threading
 import numpy as np
-import ntpath
 
 from serialcontrol import Motor
 from serialcontrol import Shutter
@@ -32,8 +31,11 @@ from exceptions import UserInterruptError
 
 from hologramcreator import HologramCreator
 from imageprocessing import MyImage
+from grating_processing import MyGrating
+from list_item import ListItem
+from slm_window import SLM_window
 
-class SingleImage(HologramCreator):
+class SLM_Image(HologramCreator):
 
     def __init__(self, root: tk.Tk):
         """
@@ -42,29 +44,39 @@ class SingleImage(HologramCreator):
 
         #Create a root with HologramCreator, the parent.
         window_configs = {
-            'Window Title':'Single Image Hologram Creator -- '
-                + 'Copyright 2019, Luke Kurlandski, all rights reserved',
+            'Window Title':'SLM Image Hologram Creator -- '
+                + 'Copyright 2020, Luke Kurlandski and Matthew Van Soelen, all rights reserved',
             'Frames Vertical':4,
             'Frames Horizontal':5
         }
         super().__init__(root, window_configs)
+        self.item_list = []
+        self.list_box = None
+        
         #Apply some frame modifications for large wigits.
-        self.frames[0][1].grid(row=0, column=1, pady=10, rowspan=200, columnspan=200, sticky='NW')
-        self.frames[1][1].grid(row=1, column=1, pady=10, rowspan=200, columnspan=200, sticky='W')
-        self.frames[0][2].grid(row=0, column=2, pady=10, rowspan=200, columnspan=200, sticky='NW', padx=250)
-        self.frames[0][3].grid(row=0, column=3, pady=10, rowspan=200, columnspan=600, sticky='NE', padx=450)
+        self.frames[1][2].grid(row=1, column=2, pady=10, rowspan=200,  sticky='NW')
+        self.frames[2][2].grid(row=2, column=2, pady=10, rowspan=200,  sticky='W')
+        self.frames[0][3].grid(row=0, column=3, pady=10, rowspan=200,  sticky='NW', padx=10)
+        self.frames[0][4].grid(row=0, column=4, pady=10, rowspan=200,  sticky='NE', padx=10)
+        
         #Setup main window with HologramCreator, the parent.
         super().setup_film(self.frames[0][0])
         super().setup_image_select(self.frames[1][0])
         super().setup_initialize_experiment(self.frames[2][0])
         super().setup_while_running(self.frames[3][0])
-        super().setup_exposure_details(self.frames[0][2])
-        super().setup_ignore_details(self.frames[0][2])
-        super().setup_laser_details(self.frames[0][2])
-        super().setup_image_array(self.frames[0][3])
-        #Setup main window with SingleImage, the self.
+        super().setup_grating_options(self.frames[0][1])
+        super().setup_exposure_details(self.frames[0][3])
+        super().setup_ignore_details(self.frames[0][3])
+        super().setup_laser_details(self.frames[0][3])
+        super().setup_image_array(self.frames[0][4])
+
+        #Setup main window with SLM_Image, the self.
         self.setup_menu()
-        self.setup_image_default(self.frames[0][1], self.frames[1][1])
+        self.setup_image_default(self.frames[1][2], self.frames[2][2])
+        self.setup_grating_default(self.frames[0][2])
+        self.setup_list_view(self.frames[1][1])
+        
+
         #Open the previous experiment
         self.open_experiment('Experiments/Previous Experiment.txt')
 
@@ -126,6 +138,7 @@ class SingleImage(HologramCreator):
         }
         #Pass to parent method to create a main menu.
         self.main_menu = super().create_mainmenu(self.root, menu_total)
+
     
     def setup_image_default(self, frame_top:tk.Frame, frame_bottom:tk.Frame):
         """
@@ -137,6 +150,7 @@ class SingleImage(HologramCreator):
             'max_display_y':200,
             'file_image':'Images/Sample Image.png',
             'name_image':'Sample Image'
+            
         }
         try:
             self.image = MyImage(image_configs)
@@ -156,6 +170,85 @@ class SingleImage(HologramCreator):
             image=self.image.modified_tkinter)
         self.label_imagemod.pack()
 
+    def setup_grating_default(self, frame:tk.Frame):
+        """
+        Set up the default gratings on main window.
+        """
+
+        grating_configs = {
+            'max_display_x':200,
+            'max_display_y':200,
+            'file_path':'Images/Sampe_Grating.png',
+            'grating_name':'Sampe_Grating.png',
+            'g_type' : 'SawTooth',
+            'g_angle' : 0,
+            'y_max' : 255,
+            'y_min' : 0,
+            'period' : 100,
+            'reverse' : 0
+        }
+        try:
+            self.grating = MyGrating(grating_configs)
+        except NoFileError as e:
+            e.advice = 'Place a new default grating in the correct directory.'
+            super().error_window(e)
+            return
+
+        self.label_grating_title = tk.Label(frame,
+            text='Grating Preview')
+        self.label_grating_title.pack()
+        self.label_grating = tk.Label(frame,
+            image=self.grating.grating_tk)
+        self.label_grating.pack()
+
+    def add_item(self):
+        if len(self.item_list) < 4:
+            self.collect_raw_data()
+            self.modify_and_map()
+            self.item_details.update({
+                'map_timing': self.map_timing,
+                'map_laser_power': self.map_laser_power
+                })
+            item = ListItem(self.image, MyGrating(self.grating.configs), self.item_details)
+            self.item_list.append(item)
+            self.list_box.insert(tk.END, "%s"%(item))
+            
+
+    def remove_item(self):
+        index = self.list_box.curselection()
+
+        if not len(index) == 0:
+            index = index[0]
+            self.list_box.delete(index)
+            del self.item_list[index]
+
+    def onselect(self, event):
+            index = self.list_box.curselection()
+            if not len(index) == 0:
+                w = event.widget
+                index = index[0]
+                item = self.item_list[index]
+
+                self.label_image.configure(image=item.image.original_tkinter)
+                self.label_imagemod.configure(image=item.image.modified_tkinter)
+                self.label_grating.configure(image=item.grating.grating_tk)
+                self.label_image_title.configure(text='%s'%(item.image.name_image))
+                self.label_imagemod_title.configure(text='%s, Modified'%(item.image.name_image))
+                super().insert_image_array(item.image, self.text_array)
+
+    def setup_list_view(self, frame:tk.Frame):
+        self.list_box = tk.Listbox(frame)
+        self.list_box.grid(row = 0, column= 0, columnspan = 2)
+
+        self.add_button = tk.Button(frame, text = 'Add', command = self.add_item)
+        self.add_button.grid(row = 1, column = 0)
+
+        self.add_button = tk.Button(frame, text = 'Remove', command = self.remove_item)
+        self.add_button.grid(row = 1, column = 1)
+
+        self.list_select = self.list_box.bind('<<ListboxSelect>>', lambda event: self.onselect(event))
+    
+
 ##############################################################################
 #Choose Image
 ##############################################################################
@@ -169,12 +262,11 @@ class SingleImage(HologramCreator):
             file_image = filedialog.askopenfilename(initialdir='Images', 
                 title="Select Image", filetypes=(("png images","*.png"),
                     ("jpeg images","*.jpeg"), ("All files","*.*")))
-            image_name = ntpath.basename(file_image)
         image_configs = {
             'max_display_x':200,
             'max_display_y':200,
             'file_image':file_image,
-            'name_image':'%s'%(file_name)
+            'name_image':'Your Image'
         }
         try:
             self.image = MyImage(image_configs)
@@ -184,8 +276,8 @@ class SingleImage(HologramCreator):
             return
         self.label_image.configure(image=self.image.original_tkinter)
         self.label_imagemod.configure(image=self.image.modified_tkinter)
-        self.label_image_title.configure(text='%s'%(file_name))
-        self.label_imagemod_title.configure(text='%s, Modified'%(file_name))
+        self.label_image_title.configure(text='Your Image')
+        self.label_imagemod_title.configure(text='Your Image, Modified')
 
 ##############################################################################
 #Data Processing Driver Function
@@ -265,7 +357,7 @@ class SingleImage(HologramCreator):
         """
         Pull raw data from window and save in variables.
         """
-
+        
         #Hologram width.
         try:
             self.hologram_width = float(self.entry_width.get().strip()) 
@@ -308,10 +400,75 @@ class SingleImage(HologramCreator):
         except ValueError as e:
             message = 'Vertical Pixels must be an int.'
             raise InputError(message, e)
+
+        #Rotation Angle
+        try:
+            val = self.entry_angle.get().strip()
+            if val != '':
+                self.grating.configs['g_angle'] = int(val)
+            else:
+                self.grating.configs['g_angle'] = 0
+        except ValueError as e:
+            message = 'Rotation angle must be an int'
+            raise InputError(message, e)
+
+        #Grating Type
+        try:
+            val = self.type_var.get().strip()
+            if val != '':
+                self.grating.configs['g_type'] = str(val)
+            else:
+                self.grating.configs['g_type'] = 'SawTooth'
+        except ValueError as e:
+            message = 'Grating type must be a string'
+            raise InputError(message, e)
+
+        #Ymin
+        try:
+            val = self.entry_ymin.get().strip()
+            if val != '':
+                self.grating.configs['y_min'] = int(val)
+            else:
+                self.grating.configs['y_min'] = 0
+        except ValueError as e:
+            message = 'Y min must be an int'
+            raise InputError(message, e)
+
+        #Ymax
+        try:
+            val = self.entry_ymax.get().strip()
+            if val != '':
+                self.grating.configs['y_max'] = int(val)
+            else:
+                self.grating.configs['y_max'] = 0
+        except ValueError as e:
+            message = 'Y max must be an int'
+            raise InputError(message, e)
+
+        #Period
+        try:
+            val = self.entry_period.get().strip()
+            if val != '' or val > 0:
+                self.grating.configs['period'] = int(val)
+            else:
+                self.grating.configs['period'] = 100
+        except ValueError as e:
+            message = 'Period width (pixels) must be an int greater than 0'
+            raise InputError(message, e)
+
+        
+
+        self.grating.configs['reverse'] = self.g_reverse.get()
         self.cropping = self.entry_crop.get().strip()
         self.strings_exposure = self.text_exposure.get(1.0, 'end-1c').strip()
         self.strings_ignore = self.text_ignore.get(1.0, 'end-1c').strip()
         self.strings_laser = self.text_laser.get(1.0, 'end-1c').strip()
+
+        self.item_details = {
+            'strings_exposure':self.strings_exposure,
+            'strings_ignore':self.strings_ignore,
+            'strings_laser':self.strings_laser
+        }
     
     def write_experiment(self):
         """
@@ -333,8 +490,10 @@ class SingleImage(HologramCreator):
             'Strings Exposure':self.strings_exposure,
             'Strings Ignore':self.strings_ignore,
             'Strings Laser':self.strings_laser,
-            'Image File':self.image.file_image
+            'Image File':self.image.file_image,
         }
+        datas.update({'item_list':self.item_list})
+        
         super().write_file('Experiments/Previous Experiment.txt', datas, 'w')
         super().write_file(self.file_experiment, datas, 'w')
     
@@ -478,6 +637,9 @@ class SingleImage(HologramCreator):
                 self.root.update()
                 time.sleep(.25)
             x.join()
+            self.slm.close_window()
+            self.slm_thread.join()
+
         except UserInterruptError as e:
             super().close_ports(self.equipment)
             super().error_window(e)
@@ -496,7 +658,8 @@ class SingleImage(HologramCreator):
 
 ##############################################################################
 #Run Experiment Worker Functions
-##############################################################################
+############################################################################## 
+
 
     def initialize_equipment(self):
         """
@@ -511,10 +674,15 @@ class SingleImage(HologramCreator):
         self.equipment.append(self.shutter)
         self.laser = Laser(self.equipment_configs_laser)
         self.equipment.append(self.laser)
+        self.slm_thread = threading.Thread(target=self.create_SLM_window)
+        self.slm_thread.start()
         #Initialize to start positions.
         self.motor.move_home(1) 
         self.motor.move_home(2) 
         self.laser.turn_on_off(True)
+
+    def create_SLM_window(self):
+        self.slm = SLM_window()
 
     def movement(self):
         """
@@ -526,14 +694,19 @@ class SingleImage(HologramCreator):
         prev_powr = None
         y_after_crop = self.image.modified_PIL.height
         x_after_crop = self.image.modified_PIL.width
-        image_as_array = np.transpose(self.image.modified_array)
+        
+        for item in item_list:
+            item.image_as_array = np.transpose(item.image.modified_array)
+
         for i in range(0, y_after_crop):
             on_this_row = False 
             for j in range(0, x_after_crop):
                 self.check_pause_abort()
-                pix = image_as_array[j][i]
-                time = self.map_timing[pix]
-                powr = self.map_laser_power[pix]
+                cur_item = cycle_image(j, i)
+                pix = cur_item.image_as_array[j][i]
+                time = cur_item.map_timing[pix]
+                powr = cur_item.map_laser_power[pix]
+                self.slm.display(cur_item.grating_tk)
                 #Enter conditional if the current pixel should be exposed.
                 if not super().compare_floats(time, 0):
                     self.update_progress(pix,time,powr,i,j)
@@ -550,6 +723,18 @@ class SingleImage(HologramCreator):
                     #Update previous pixel info to current pixel info
                     prev_pix = pix
                     prev_powr = powr
+
+    def cycle_image(j, i):
+        if j % 2 == 0 and i % 2 == 0:
+            return item_list[0]
+        elif j % 2 == 0 and i % 2 == 1:
+            return item_list[1]
+        elif j % 2 == 1 and i % 2 == 0:
+            return item_list[2]
+        elif j % 2 == 1 and i % 2 == 1:
+            return item_list[3]
+        else:
+            return None
 
     def check_pause_abort(self):
         """

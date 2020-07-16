@@ -14,6 +14,7 @@ from PIL import Image
 from PIL import ImageTk
 import numpy as np
 
+
 from exceptions import InputError
 from exceptions import NoFileError
 from exceptions import UnknownError
