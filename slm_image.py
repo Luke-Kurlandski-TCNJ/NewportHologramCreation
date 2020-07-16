@@ -1,13 +1,11 @@
 """
 Provide GUI class to create a single image hologram.
 
-@author: Luke Kurlandski
-@date: December 2019
-@copyright: Copyright 2019, Luke Kurlandski, all rights reserved
+@author: Luke Kurlandski, Matthew Van Soelen
+@date: July 16, 2020
 
-Special thanks to Daniel Stolz, Matthew Van Soelen, and Dr. David McGee.
+Special thanks to Daniel Stolz, and Dr. David McGee.
 
-Read the Program Guide for detailed information about this program.
 """
 
 import tkinter as tk
@@ -52,6 +50,7 @@ class SLM_Image(HologramCreator):
         super().__init__(root, window_configs)
         self.item_list = []
         self.list_box = None
+        self.slm = None
         
         #Apply some frame modifications for large wigits.
         self.frames[1][2].grid(row=1, column=2, pady=10, rowspan=200,  sticky='NW')
@@ -637,8 +636,8 @@ class SLM_Image(HologramCreator):
                 self.root.update()
                 time.sleep(.25)
             x.join()
-            self.slm.close_window()
-            self.slm_thread.join()
+            #self.slm.close_window()
+            #self.slm_thread.join()
 
         except UserInterruptError as e:
             super().close_ports(self.equipment)
@@ -674,39 +673,41 @@ class SLM_Image(HologramCreator):
         self.equipment.append(self.shutter)
         self.laser = Laser(self.equipment_configs_laser)
         self.equipment.append(self.laser)
-        self.slm_thread = threading.Thread(target=self.create_SLM_window)
-        self.slm_thread.start()
+        #self.slm_thread = threading.Thread(target=self.create_SLM_window)
+        #self.slm_thread.start()
         #Initialize to start positions.
         self.motor.move_home(1) 
         self.motor.move_home(2) 
         self.laser.turn_on_off(True)
 
     def create_SLM_window(self):
-        self.slm = SLM_window()
+        self.slm = SLM_window(self.root)
 
     def movement(self):
         """
         Conduct the physical movement of machinery and such.
         """
-
+        # Create SLM Window
+        self.create_SLM_window()
+        
         #Move through the image array, expose according to mappings.
         prev_pix = None
         prev_powr = None
         y_after_crop = self.image.modified_PIL.height
         x_after_crop = self.image.modified_PIL.width
         
-        for item in item_list:
+        for item in self.item_list:
             item.image_as_array = np.transpose(item.image.modified_array)
 
         for i in range(0, y_after_crop):
             on_this_row = False 
             for j in range(0, x_after_crop):
                 self.check_pause_abort()
-                cur_item = cycle_image(j, i)
+                cur_item = self.cycle_image(j, i)
                 pix = cur_item.image_as_array[j][i]
                 time = cur_item.map_timing[pix]
                 powr = cur_item.map_laser_power[pix]
-                self.slm.display(cur_item.grating_tk)
+                self.slm.display(cur_item.grating.grating_tk)
                 #Enter conditional if the current pixel should be exposed.
                 if not super().compare_floats(time, 0):
                     self.update_progress(pix,time,powr,i,j)
@@ -724,15 +725,15 @@ class SLM_Image(HologramCreator):
                     prev_pix = pix
                     prev_powr = powr
 
-    def cycle_image(j, i):
+    def cycle_image(self, j, i):
         if j % 2 == 0 and i % 2 == 0:
-            return item_list[0]
+            return self.item_list[0]
         elif j % 2 == 0 and i % 2 == 1:
-            return item_list[1]
+            return self.item_list[1]
         elif j % 2 == 1 and i % 2 == 0:
-            return item_list[2]
+            return self.item_list[2]
         elif j % 2 == 1 and i % 2 == 1:
-            return item_list[3]
+            return self.item_list[3]
         else:
             return None
 

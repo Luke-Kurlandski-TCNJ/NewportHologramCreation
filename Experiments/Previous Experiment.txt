@@ -26,10 +26,10 @@ Strings Laser::
 [0,256]:6.72
 ####################
 Image File::
-/Users/matthewvansoelen/Desktop/BackGrounds/PDrawsBackground.jpeg
+C:/Users/Matthew_VS/Desktop/Newport-Hologram-Creation/Images/Galaxy M101.png
 ####################
 item_list::
-[Your Image SawTooth 20, Your Image SawTooth 20]
+[Your Image SawTooth 10, Your Image SawTooth 10, Your Image SawTooth 10, Your Image SawTooth 10]
 ####################
 Motor Command Pause::
 .1
