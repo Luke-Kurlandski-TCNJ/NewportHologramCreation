@@ -16,136 +16,37 @@ Pixels Vertical::
 Cropping::
 
 ####################
-strings_exposure 0::
-
+strings_exposure::
+[0,256]:.01x
 ####################
-strings_ignore 0::
-
+strings_ignore::
+[0,1]
 ####################
-strings_laser 0::
-
+strings_laser::
+[0,256]:6.72
 ####################
-Image File 0::
-C:/Users/Matthew_VS/Desktop/number_one.png
-####################
-Grating File 0::
-Images/Sampe_Grating.png
-####################
-grating_type 0::
-SawTooth
-####################
-rotation_angle 0::
-90
-####################
-y_min 0::
-40
-####################
-y_max 0::
-220
-####################
-period 0::
-80
-####################
-reverse 0::
-0
-####################
-strings_exposure 1::
-
-####################
-strings_ignore 1::
-
-####################
-strings_laser 1::
-
-####################
-Image File 1::
-C:/Users/Matthew_VS/Desktop/number_two.png
-####################
-Grating File 1::
-Images/Sampe_Grating.png
-####################
-grating_type 1::
-SawTooth
-####################
-rotation_angle 1::
-90
-####################
-y_min 1::
-40
-####################
-y_max 1::
-220
-####################
-period 1::
-80
-####################
-reverse 1::
-0
-####################
-strings_exposure 2::
-
-####################
-strings_ignore 2::
-
-####################
-strings_laser 2::
-
-####################
-Image File 2::
-C:/Users/Matthew_VS/Desktop/number_three.png
-####################
-Grating File 2::
-Images/Sampe_Grating.png
-####################
-grating_type 2::
-SawTooth
-####################
-rotation_angle 2::
-90
-####################
-y_min 2::
-40
-####################
-y_max 2::
-220
-####################
-period 2::
-80
-####################
-reverse 2::
-0
-####################
-strings_exposure 3::
-
-####################
-strings_ignore 3::
-
-####################
-strings_laser 3::
-
-####################
-Image File 3::
+Image File::
 C:/Users/Matthew_VS/Desktop/number_four.png
 ####################
-Grating File 3::
+Grating File::
 Images/Sampe_Grating.png
 ####################
-grating_type 3::
+grating_type::
 SawTooth
 ####################
-rotation_angle 3::
+rotation_angle::
 90
 ####################
-y_min 3::
+y_min::
 40
 ####################
-y_max 3::
+y_max::
 220
 ####################
-period 3::
+period::
 80
 ####################
-reverse 3::
+reverse::
 0
 ####################
 Motor Command Pause::
@@ -165,9 +66,6 @@ Shutter Command Pause::
 ####################
 Shutter Operating Mode::
 1
-####################
-strings_laser::
-[0,256]:6.72
 ####################
 Laser Command Pause::
 .1

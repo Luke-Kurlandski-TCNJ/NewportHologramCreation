@@ -486,12 +486,21 @@ class SLM_Image(HologramCreator):
             'Pixels Horizontal':self.pixels_x, 
             'Pixels Vertical':self.pixels_y,
             'Cropping' :self.cropping,
-            'Strings Exposure':self.strings_exposure,
-            'Strings Ignore':self.strings_ignore,
-            'Strings Laser':self.strings_laser,
-            'Image File':self.image.file_image,
         }
-        datas.update({'item_list':self.item_list})
+        for index,item in enumerate(self.item_list, start=1):
+            item = {'strings_exposure %d'%index: item.item_details['strings_exposure'],
+                    'strings_ignore %d'%index: item.item_details['strings_ignore'],
+                    'strings_laser %d'%index: item.item_details['strings_laser'],
+                    'Image File %d'%index: item.image.file_image,
+                    'Grating File %d'%index: item.grating.file_path,
+                    'grating_type %d'%index: item.grating.configs['g_type'],
+                    'rotation_angle %d'%index: item.grating.configs['g_angle'],
+                    'y_min %d'%index: item.grating.configs['y_min'],
+                    'y_max %d'%index: item.grating.configs['y_max'],
+                    'period %d'%index: item.grating.configs['period'],
+                    'reverse %d'%index: item.grating.configs['reverse'],
+                    }
+            datas.update(item)
         
         super().write_file('Experiments/Previous Experiment.txt', datas, 'w')
         super().write_file(self.file_experiment, datas, 'w')
