@@ -62,7 +62,7 @@ class MyGrating:
             if(configs['g_type'] == 'SawTooth'):
                 slope = (configs['y_max'] - configs['y_min'])/configs['period']
                 for i in range(width_array):                        # for creates color for each column
-                    color = slope * (reverse * i % configs['period']) + y_intercept    # Slope intercept form: y = mx + b (y = color)
+                    color = slope * reverse * (i % configs['period']) + y_intercept    # Slope intercept form: y = mx + b (y = color)
                     self.g_array[:, i] = color
                 self.grating_image = Image.fromarray(self.g_array)
 

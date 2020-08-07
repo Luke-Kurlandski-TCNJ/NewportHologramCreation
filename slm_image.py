@@ -10,6 +10,7 @@ Special thanks to Daniel Stolz, and Dr. David McGee.
 
 import tkinter as tk
 from tkinter import filedialog
+import ntpath
 from datetime import datetime 
 from datetime import timedelta 
 import time
@@ -261,11 +262,12 @@ class SLM_Image(HologramCreator):
             file_image = filedialog.askopenfilename(initialdir='Images', 
                 title="Select Image", filetypes=(("png images","*.png"),
                     ("jpeg images","*.jpeg"), ("All files","*.*")))
+        file_name = ntpath.basename(file_path)
         image_configs = {
             'max_display_x':200,
             'max_display_y':200,
             'file_image':file_image,
-            'name_image':'Your Image'
+            'name_image':file_name
         }
         try:
             self.image = MyImage(image_configs)
