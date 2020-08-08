@@ -60,18 +60,10 @@ class SLM_window():
         self.window_slm_label = Label(self.window_slm, image=grating)
         #self.window_slm_label.pack()
 
-        self.test_label = Label(self.window_slm, text='John')
-        self.test_label.pack()
-
         # Termination command for the code
         self.window_slm.bind("<Escape>", lambda e: self.window_slm.destroy())
-        # self.image_window.bind("<E>", lambda e: self.image_window.destroy())
-
-        # self.image_window.mainloop()
-
-    def change_text(self, msg):
-        self.test_label.config(text= msg)
-
+       
+    
     def display(self,grating):
         self.window_slm_label.config(image=grating)
 

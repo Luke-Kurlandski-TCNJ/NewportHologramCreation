@@ -19,12 +19,14 @@ from exceptions import InputError
 from exceptions import NoFileError
 from exceptions import UnknownError
 
+
 class MyGrating:
         def __init__(self, configs: dict):
             """
             Creates an grating opject that contains PIL and tkinter images.
             """
-            self.configs = configs
+            
+            self.configs = configs.copy()
             self.max_display_x = (configs['max_display_x'] if 'max_display_x' 
                 in configs else 200)
             self.max_display_y = (configs['max_display_y'] if 'max_display_y' 
@@ -34,6 +36,7 @@ class MyGrating:
             self.grating_name = (configs['grating_name'] if 'grating_name'
                 in configs else 'Some Graitng')
             self.create_grating_image(configs)
+            
 
         def create_grating_image(self, configs: dict):
             '''
@@ -154,7 +157,6 @@ class MyGrating:
                 self.modified_array = self.image_as_array(image)
             return image
 
-        def update(self):
-            self.create_grating_image(self.configs)
+        
 
 

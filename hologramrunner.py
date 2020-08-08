@@ -31,7 +31,7 @@ def slm_image():
 root = tk.Tk()
 configs = {
     'Window Title':'Hologram Creator -- '
-            + 'Copyright 2019, Luke Kurlandski, all rights reserved',
+            + 'Copyright 2019, Luke Kurlandski and Matthew Van Soelen, all rights reserved',
     'Window Width':200,
     'Window Height':200
 }

@@ -116,7 +116,7 @@ y_min 3::
 30
 ####################
 y_max 3::
-250
+230
 ####################
 period 3::
 90
@@ -178,22 +178,22 @@ Shutter Command Pause::
 Shutter Operating Mode::
 1
 ####################
-strings_laser 1::
+Strings Laser 1::
 
 ####################
-strings_laser 2::
+Strings Laser 2::
 
 ####################
-strings_laser 3::
+Strings Laser 3::
 
 ####################
-strings_laser 4::
+Strings Laser 4::
 
 ####################
-strings_laser 0::
+Strings Laser 0::
 
 ####################
-strings_laser::
+Strings Laser::
 [0,256]:6.72
 ####################
 Laser Command Pause::
