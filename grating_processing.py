@@ -89,8 +89,8 @@ class MyGrating:
 
             self.grating_image = self.grating_image.rotate(configs['g_angle'])
             self.grating_image = self.grating_image.crop((x_dist, y_dist, width_array - x_dist, height_array - y_dist))
-
-            self.grating_tk = self.get_grating_preview(self.grating_image)
+            self.grating_tk = ImageTk.PhotoImage(self.grating_image)
+            self.grating_preview_tk = self.get_grating_preview(self.grating_image)
 
         def get_grating_preview(self, image:Image.Image):
             """

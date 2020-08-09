@@ -246,7 +246,7 @@ class SLM_Image(HologramCreator):
                 
                 self.label_image.configure(image=item.image.original_tkinter)
                 self.label_imagemod.configure(image=item.image.modified_tkinter)
-                self.label_grating.configure(image=item.grating.grating_tk)
+                self.label_grating.configure(image=item.grating.grating_preview_tk)
                 self.label_image_title.configure(text='%s'%(item.image.name_image))
                 self.label_imagemod_title.configure(text='%s, Modified'%(item.image.name_image))
                 super().insert_image_array(item.image, self.text_array)
@@ -705,8 +705,7 @@ class SLM_Image(HologramCreator):
         self.equipment.append(self.shutter)
         self.laser = Laser(self.equipment_configs_laser)
         self.equipment.append(self.laser)
-        #self.slm_thread = threading.Thread(target=self.create_SLM_window)
-        #self.slm_thread.start()
+        
         #Initialize to start positions.
         self.motor.move_home(1) 
         self.motor.move_home(2) 
@@ -737,12 +736,12 @@ class SLM_Image(HologramCreator):
                 self.check_pause_abort()
                 cur_item = self.cycle_image(j, i)
                 pix = cur_item.image_as_array[j][i]
-                time = cur_item.map_timing[pix]
+                e_time = cur_item.map_timing[pix]
                 powr = cur_item.map_laser_power[pix]
                 self.slm.display(cur_item.grating.grating_tk)
                 #Enter conditional if the current pixel should be exposed.
-                if not super().compare_floats(time, 0):
-                    self.update_progress(pix,time,powr,i,j)
+                if not super().compare_floats(e_time, 0):
+                    self.update_progress(pix,e_time,powr,i,j)
                     #Change the laser's power if the pixel value has changed.
                     if prev_pix is not None and prev_powr is not None:
                         if not super().compare_floats(powr, prev_powr):
