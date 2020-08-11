@@ -16,23 +16,20 @@ Pixels Vertical::
 Cropping::
 (10,10),(90,90)
 ####################
-Strings Exposure 1::
-[0,100]:.01x
-[100,101]:5
-[101,256]:.02x
+strings_exposure 1::
+
 ####################
-Strings Ignore 1::
-[0,1]
+strings_ignore 1::
+
 ####################
-Strings Laser 1::
-[0,100]:10
-[100,256]:.02x
+strings_laser 1::
+
 ####################
 Image File 1::
 C:/Users/Matthew_VS/Desktop/number_one.png
 ####################
 Grating File 1::
-Images/Sample_Grating.png
+Images/Sampe_Grating.png
 ####################
 grating_type 1::
 SawTooth
@@ -47,40 +44,37 @@ y_max 1::
 250
 ####################
 period 1::
-110
+100
 ####################
 reverse 1::
-0
+1
 ####################
-Strings Exposure 2::
-[0,100]:.02x
-[100,101]:5
-[101,256]:.02x
+strings_exposure 2::
+
 ####################
-Strings Ignore 2::
-[0,2]
+strings_ignore 2::
+
 ####################
-Strings Laser 2::
-[0,100]:12
-[100,256]:.02x
+strings_laser 2::
+
 ####################
 Image File 2::
 C:/Users/Matthew_VS/Desktop/number_two.png
 ####################
 Grating File 2::
-Images/Sample_Grating.png
+Images/Sampe_Grating.png
 ####################
 grating_type 2::
 SawTooth
 ####################
 rotation_angle 2::
-30
+0
 ####################
 y_min 2::
-20
+10
 ####################
 y_max 2::
-240
+250
 ####################
 period 2::
 100
@@ -88,74 +82,68 @@ period 2::
 reverse 2::
 1
 ####################
-Strings Exposure 3::
-[0,100]:.03x
-[100,101]:5
-[101,256]:.02x
+strings_exposure 3::
+
 ####################
-Strings Ignore 3::
-[0,3]
+strings_ignore 3::
+
 ####################
-Strings Laser 3::
-[0,100]:13
-[100,256]:.02x
+strings_laser 3::
+
 ####################
 Image File 3::
 C:/Users/Matthew_VS/Desktop/number_three.png
 ####################
 Grating File 3::
-Images/Sample_Grating.png
+Images/Sampe_Grating.png
 ####################
 grating_type 3::
 SawTooth
 ####################
 rotation_angle 3::
-60
+0
 ####################
 y_min 3::
-30
+10
 ####################
 y_max 3::
 250
 ####################
 period 3::
-90
+100
 ####################
 reverse 3::
-0
+1
 ####################
-Strings Exposure 4::
-[0,100]:.04x
-[100,101]:5
-[101,256]:.02x
+strings_exposure 4::
+
 ####################
-Strings Ignore 4::
-[0,4]
+strings_ignore 4::
+
 ####################
-Strings Laser 4::
-[0,100]:14
-[100,256]:.02x
+strings_laser 4::
+
 ####################
 Image File 4::
 C:/Users/Matthew_VS/Desktop/number_four.png
 ####################
 Grating File 4::
-Images/Sample_Grating.png
+Images/Sampe_Grating.png
 ####################
 grating_type 4::
 SawTooth
 ####################
 rotation_angle 4::
-90
+0
 ####################
 y_min 4::
-40
+10
 ####################
 y_max 4::
-220
+250
 ####################
 period 4::
-80
+100
 ####################
 reverse 4::
 1
@@ -177,22 +165,6 @@ Shutter Command Pause::
 ####################
 Shutter Operating Mode::
 1
-####################
-Strings Laser 1::
-[0,100]:10
-[100,256]:.02x
-####################
-Strings Laser 2::
-[0,100]:12
-[100,256]:.02x
-####################
-Strings Laser 3::
-[0,100]:13
-[100,256]:.02x
-####################
-Strings Laser 4::
-[0,100]:14
-[100,256]:.02x
 ####################
 strings_laser 1::
 

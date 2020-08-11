@@ -37,15 +37,9 @@ class SLM_window():
             image = image.convert('L')
             grating = ImageTk.PhotoImage(image)
 
-        # Create a window environment on the computer
-        
         # self.image_window = Tk()
         self.image_window = master
         
-
-        # # Window requieres no frame
-        # self.image_window.attributes("-alpha", 0.0)
-        # self.image_window.iconify()
 
         # Create a window on the screen of the SLM monitor
         self.window_slm = Toplevel(self.image_window)
@@ -53,25 +47,17 @@ class SLM_window():
         
         self.window_slm.geometry(self.window_slm_geometry)
         self.window_slm.overrideredirect(1)
-
+        
         
 
         # Load the opened image into the window of the SLM monitor
         self.window_slm_label = Label(self.window_slm, image=grating)
-        #self.window_slm_label.pack()
-
-        self.test_label = Label(self.window_slm, text='John')
-        self.test_label.pack()
-
+        self.window_slm_label.pack()
+        print(self.window_slm_geometry, "\n", grating.height(), grating.width())
         # Termination command for the code
         self.window_slm.bind("<Escape>", lambda e: self.window_slm.destroy())
-        # self.image_window.bind("<E>", lambda e: self.image_window.destroy())
-
-        # self.image_window.mainloop()
-
-    def change_text(self, msg):
-        self.test_label.config(text= msg)
-
+       
+    
     def display(self,grating):
         self.window_slm_label.config(image=grating)
 
@@ -83,7 +69,7 @@ class SLM_window():
     def display_left_side(self, bmh, bsh, bmv, bsv):
         # Reverse the monitor pixel order (because, the SLM monitor is located ón the left side of the main monitor)
         begin_slm_horizontal = str(int(bmh) - int(bsh))
-        begin_slm_vertical = str(int(bmv) - int(bsv) + 20)
+        begin_slm_vertical = str(int(bmv) - int(bsv))
         return (begin_slm_horizontal, begin_slm_vertical)
 
 
