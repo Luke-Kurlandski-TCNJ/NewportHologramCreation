@@ -37,22 +37,14 @@ class MyGrating:
                 in configs else 'Some Graitng')
             self.create_grating_image(configs)
             
-
-        def create_grating_image(self, configs: dict):
-            '''
-
-            '''
-            width = 1920
-            height = 1152
-
-            width_array = 2240
-            height_array = 2240
-
-            x_dist = (width_array - width)/2
-            y_dist = (width_array - height)/2
-
-            self.g_array = np.zeros((height_array, width_array), dtype = np.uint16)
+        def center_crop(self, image, array_width, array_height, width, height):
+            x_margin = (array_width - width) //2
+            y_margin = (array_height - height) // 2
             
+            return image.crop((x_margin, y_margin, x_margin + width, y_margin + height))
+            
+        def generate_pattern_array(self, height_array, width_array, configs: dict):
+            grating_array = np.zeros((height_array, width_array), dtype = np.uint16)
             
             reverse = 0
             if(configs['reverse'] == 0):
@@ -66,8 +58,7 @@ class MyGrating:
                 slope = (configs['y_max'] - configs['y_min'])/configs['period']
                 for i in range(width_array):                        # for creates color for each column
                     color = slope * reverse * (i % configs['period']) + y_intercept    # Slope intercept form: y = mx + b (y = color)
-                    self.g_array[:, i] = color
-                self.grating_image = Image.fromarray(self.g_array)
+                    grating_array[:, i] = color
 
             elif(configs['g_type'] == 'Triangle'):
                 period_counter = 0
@@ -81,16 +72,42 @@ class MyGrating:
                         color = slope * -1 * (i % period) + configs['y_max']
                     else:
                         color = slope * (i % period) + configs['y_min']
-                    self.g_array[:, i] = color
+                    grating_array[:, i] = color
+            
+            elif(configs['g_type'] == 'Circle'):
+                cx, cy = width_array //2, height_array //2 # The center of circle
+                radius = cy
+                slope = (configs['y_max'] - configs['y_min'])/configs['period']
+                for i in range(width_array):
+                    color = slope * reverse * (i % configs['period']) + y_intercept
+                    x, y = np.ogrid[-radius: radius, -radius: radius]
+                    index = x**2 + y**2 <= radius**2
+                    grating_array[cy-radius:cy+radius, cx-radius:cx+radius][index] = color
+                    radius -= 1
+                    
+            return grating_array
 
-                self.grating_image = Image.fromarray(self.g_array)
+        def create_grating_image(self, configs: dict):
+            '''
+
+            '''
+            width = 1920
+            height = 1152
+
+            width_array = int(np.ceil( np.sqrt(pow(width, 2) + pow(height, 2))))
+            height_array = width_array
+
+            self.g_array = self.generate_pattern_array(height_array, width_array, configs)
+            
+            self.grating_image = Image.fromarray(self.g_array)
             
             self.grating_image = self.grating_image.convert('L')
 
             self.grating_image = self.grating_image.rotate(configs['g_angle'])
-            self.grating_image = self.grating_image.crop((x_dist, y_dist, width_array - x_dist, height_array - y_dist))
+            self.grating_image = self.center_crop(self.grating_image, width_array, height_array, width, height)
             self.grating_tk = ImageTk.PhotoImage(self.grating_image)
             self.grating_preview_tk = self.get_grating_preview(self.grating_image)
+
 
         def get_grating_preview(self, image:Image.Image):
             """

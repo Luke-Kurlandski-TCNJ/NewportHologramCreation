@@ -137,7 +137,7 @@ class HologramCreator(App):
         self.entry_angle.grid(row=1, column=0)
 
         tk.Label(frame, text='Grating Type', font='bold').grid(row=0, column=1)
-        self.types = {'SawTooth', 'Triangle'}
+        self.types = {'SawTooth', 'Triangle', 'Circle'}
         self.type_var = tk.StringVar(frame)
         self.type_var.set('SawTooth')
         tk.OptionMenu(frame, self.type_var, *self.types).grid(row=1, column=1)
