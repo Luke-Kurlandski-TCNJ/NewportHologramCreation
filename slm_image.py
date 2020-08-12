@@ -72,6 +72,7 @@ class SLM_Image(HologramCreator):
         super().setup_ignore_details(self.frames[0][3])
         super().setup_laser_details(self.frames[0][3])
         super().setup_image_array(self.frames[0][4])
+        super().setup_experiment_details_view(self.frames[2][1])
 
         #Setup main window with SLM_Image, the self.
         self.setup_menu()
@@ -119,8 +120,8 @@ class SLM_Image(HologramCreator):
                 'Equipment/Laser Settings.txt', 'Laser')
         }
         submenu_view = {
-            'Image as Array':lambda:self.display_image_array(self.image),
-            'Mapping Graph':self.generate_plot
+            'Image as Array':lambda:self.display_image_array(self.item.image),
+            'Mapping Graph':lambda:self.generate_plot(self.item)
         }
         submenu_help = {
             'General':lambda:self.help_window('Help/General.txt'),
@@ -236,30 +237,63 @@ class SLM_Image(HologramCreator):
     def clear_items(self):
         self.list_box.delete(0, tk.END)
         self.item_list.clear()
+    
+    def fill_item_deatils(self,item):
+        
+        # Change grating, images and titles
+        self.label_image.configure(image=item.image.original_tkinter)
+        self.label_imagemod.configure(image=item.image.modified_tkinter)
+        self.label_grating.configure(image=item.grating.grating_preview_tk)
+        self.label_image_title.configure(text='%s'%(item.image.name_image))
+        self.label_imagemod_title.configure(text='%s, Modified'%(item.image.name_image))
+        
+        # Change info in Selection Details view
+        self.image_name_label.config(text = "Image Name: %s" %(item.image.name_image))
+        self.grating_type_label.config(text = "Grating Type: %s" %(item.grating.configs['g_type']))
+        self.rotation_angle_label.config(text = "Rotation Angle: %s" %(item.grating.configs['g_angle']))
+        self.y_min_label.config(text = "Y min: %s" %(item.grating.configs['y_min']))
+        self.y_max_label.config(text = "Y max: %s" %(item.grating.configs['y_max']))
+        self.period_label.config(text = "Period: %s" %(item.grating.configs['period']))
+        if item.grating.configs['reverse'] == 1:
+            result = "Yes"
+        else:
+            result = "No"
+        self.reverse_label.config(text = "Reverse: %s" %(result))
+        # Change text boxes info
+        self.text_exposure.delete(1.0,tk.END)
+        self.text_exposure.insert(1.0, item.item_details['strings_exposure'])
+        
+        self.text_ignore.delete(1.0,tk.END)
+        self.text_ignore.insert(1.0, item.item_details['strings_ignore'])
 
+        self.text_laser.delete(1.0,tk.END)
+        self.text_laser.insert(1.0, item.item_details['strings_laser'])
+        
+        super().insert_image_array(item.image, self.text_array)
+        
     def onselect(self, event):
             index = self.list_box.curselection()
             if not len(index) == 0:
                 w = event.widget
                 index = index[0]
-                item = self.item_list[index]
+                self.item = self.item_list[index]
                 
-                self.label_image.configure(image=item.image.original_tkinter)
-                self.label_imagemod.configure(image=item.image.modified_tkinter)
-                self.label_grating.configure(image=item.grating.grating_preview_tk)
-                self.label_image_title.configure(text='%s'%(item.image.name_image))
-                self.label_imagemod_title.configure(text='%s, Modified'%(item.image.name_image))
-                super().insert_image_array(item.image, self.text_array)
+                self.fill_item_deatils(self.item)
+                
 
     def setup_list_view(self, frame:tk.Frame):
-        self.list_box = tk.Listbox(frame)
-        self.list_box.grid(row = 0, column= 0, columnspan = 2)
-
+        
+        self.list_box = tk.Listbox(frame, width=40)
+        self.list_box.grid(row = 0, column= 0, columnspan=3)
+        
         self.add_button = tk.Button(frame, text = 'Add', command = self.add_item)
         self.add_button.grid(row = 1, column = 0)
 
         self.add_button = tk.Button(frame, text = 'Remove', command = self.remove_item)
         self.add_button.grid(row = 1, column = 1)
+        
+        self.clear_list_button = tk.Button(frame, text = 'Clear List', command = self.clear_items)
+        self.clear_list_button.grid(row = 1, column = 2)
 
         self.list_select = self.list_box.bind('<<ListboxSelect>>', lambda event: self.onselect(event))
     
@@ -606,15 +640,15 @@ class SLM_Image(HologramCreator):
         end_time = (datetime.now() + timedelta(seconds=run_time)).strftime('%H:%M:%S -- %d/%m/%Y')
         self.label_est_time.configure(text='End Time Estimate: '+end_time)
     
-    def generate_plot(self):
+    def generate_plot(self, item):
         """
         Display a plot of the mappings, if they have been produced.
         """
 
         try:
             data = {
-                'Exposure Time (s)':self.map_timing, 
-                'Laser Power (mW)':self.map_laser_power
+                'Exposure Time (s)':item.map_timing, 
+                'Laser Power (mW)':item.map_laser_power
             }
             super().generate_plot(data)
         except Exception:

@@ -131,6 +131,7 @@ class HologramCreator(App):
         """
         Set up grating options entry widgets
         """
+        frame.config(borderwidth=2, relief=tk.SUNKEN)
 
         tk.Label(frame, text='Rotation Angle', font='bold').grid(row=0, column=0)
         self.entry_angle = tk.Entry(frame, width = 15)
@@ -226,6 +227,29 @@ class HologramCreator(App):
         self.text_array = super().text_apply_scrollbars(self.root, text_configs)
         self.text_array.configure(width=80, height=40)
         self.text_array.grid(row=1, column=0)
+    
+    def setup_experiment_details_view(self, frame:tk.Frame):
+        '''
+        '''
+        
+        sub_frame = tk.Frame(frame, borderwidth=2, relief=tk.SUNKEN)
+        sub_frame.pack()
+        
+        tk.Label(sub_frame, text = "Selection Details", font='bold').grid(row=0, column=0, columnspan=2)
+        self.image_name_label = tk.Label(sub_frame, text = "Image Name: ")
+        self.image_name_label.grid(row=1, column=0)
+        self.grating_type_label = tk.Label(sub_frame, text= "Grating Type: ")
+        self.grating_type_label.grid(row=2, column=0)
+        self.rotation_angle_label = tk.Label(sub_frame, text = "Rotation Angle: ")
+        self.rotation_angle_label.grid(row=3, column=0)
+        self.y_min_label = tk.Label(sub_frame, text = "Y min: ")
+        self.y_min_label.grid(row=1, column=1)
+        self.y_max_label = tk.Label(sub_frame, text = "Y max: ")
+        self.y_max_label.grid(row=2, column=1)
+        self.period_label = tk.Label(sub_frame, text = "Period: ")
+        self.period_label.grid(row=3, column=1)
+        self.reverse_label = tk.Label(sub_frame, text = "Reverse: ")
+        self.reverse_label.grid(row=4, column=1)
         
 ##############################################################################
 #Data Processing
