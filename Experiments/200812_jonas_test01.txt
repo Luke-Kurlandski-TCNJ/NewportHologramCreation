@@ -1,32 +1,32 @@
 Hologram Width::
-0.01
+0.00052
 ####################
 Hologram Height::
-0.01
+0.000304
 ####################
 Spot Size::
-130.0
+-1
 ####################
 Pixels Horizontal::
-77
+4
 ####################
 Pixels Vertical::
-132
+4
 ####################
 Cropping::
 
 ####################
 Strings Exposure 1::
-[0,20]:5
+[0,256]:3
 ####################
 Strings Ignore 1::
-[21,256]
+
 ####################
 Strings Laser 1::
 
 ####################
 Image File 1::
-G:/Shared drives/McGee Laser Lab/Students/Jonas Strobelt/01 Data/200812_SLM_interweave_newProg/v1.png
+C:/Users/mcgeelab/Desktop/Testing Software/Newport-Hologram-Creation/Images/150.png
 ####################
 Grating File 1::
 Images/Sample_Grating.png
@@ -35,7 +35,7 @@ grating_type 1::
 SawTooth
 ####################
 rotation_angle 1::
-67
+90
 ####################
 y_min 1::
 0
@@ -44,22 +44,22 @@ y_max 1::
 128
 ####################
 period 1::
-28
+30
 ####################
 reverse 1::
 0
 ####################
 Strings Exposure 2::
-[0,20]:5
+[0,256]:3
 ####################
 Strings Ignore 2::
-[21,256]
+
 ####################
 Strings Laser 2::
 
 ####################
 Image File 2::
-G:/Shared drives/McGee Laser Lab/Students/Jonas Strobelt/01 Data/200812_SLM_interweave_newProg/v2.png
+C:/Users/mcgeelab/Desktop/Testing Software/Newport-Hologram-Creation/Images/Galaxy M101.png
 ####################
 Grating File 2::
 Images/Sample_Grating.png
@@ -68,7 +68,7 @@ grating_type 2::
 SawTooth
 ####################
 rotation_angle 2::
-82
+45
 ####################
 y_min 2::
 0
@@ -77,22 +77,22 @@ y_max 2::
 128
 ####################
 period 2::
-28
+34
 ####################
 reverse 2::
 0
 ####################
 Strings Exposure 3::
-[0,20]:5
+[0,256]:3
 ####################
 Strings Ignore 3::
-[21,256]
+
 ####################
 Strings Laser 3::
 
 ####################
 Image File 3::
-G:/Shared drives/McGee Laser Lab/Students/Jonas Strobelt/01 Data/200812_SLM_interweave_newProg/v3.png
+C:/Users/mcgeelab/Desktop/Testing Software/Newport-Hologram-Creation/Images/Sample Image.png
 ####################
 Grating File 3::
 Images/Sample_Grating.png
@@ -101,7 +101,7 @@ grating_type 3::
 SawTooth
 ####################
 rotation_angle 3::
-97
+0
 ####################
 y_min 3::
 0
@@ -110,22 +110,22 @@ y_max 3::
 128
 ####################
 period 3::
-28
+26
 ####################
 reverse 3::
 0
 ####################
 Strings Exposure 4::
-[0,20]:5
+[0,256]:3
 ####################
 Strings Ignore 4::
-[21,256]
+
 ####################
 Strings Laser 4::
 
 ####################
 Image File 4::
-G:/Shared drives/McGee Laser Lab/Students/Jonas Strobelt/01 Data/200812_SLM_interweave_newProg/v4.png
+C:/Users/mcgeelab/Desktop/Testing Software/Newport-Hologram-Creation/Images/Sample_Grating.png
 ####################
 Grating File 4::
 Images/Sample_Grating.png
@@ -134,7 +134,7 @@ grating_type 4::
 SawTooth
 ####################
 rotation_angle 4::
-112
+-45
 ####################
 y_min 4::
 0
@@ -143,7 +143,7 @@ y_max 4::
 128
 ####################
 period 4::
-28
+22
 ####################
 reverse 4::
 0

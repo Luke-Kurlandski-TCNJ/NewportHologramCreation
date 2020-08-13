@@ -1,5 +1,5 @@
 Shutter Serial Port::
-COM6
+COM24
 ####################
 Shutter Serial Baudrate::
 9600

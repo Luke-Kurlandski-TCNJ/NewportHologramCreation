@@ -671,6 +671,7 @@ class SLM_Image(HologramCreator):
         self.root.update()
         #Establish and initialize the equipment for experiment.
         try:
+            print("test")
             #Use simple threading to prevent laggy main window.
             x = threading.Thread(target=self.initialize_equipment)
             x.start()
@@ -678,6 +679,7 @@ class SLM_Image(HologramCreator):
                 self.root.update()
                 time.sleep(.25)
             x.join()
+            #pdb.set_trace()
         except EquipmentError as e: 
             super().error_window(e)
             super().close_ports(self.equipment)
@@ -733,7 +735,9 @@ class SLM_Image(HologramCreator):
         
         #Create the objects amd store in a list.
         self.equipment = []
+        #pdb.set_trace()
         self.motor = Motor({**self.equipment_configs_motor,**{'Axes':(1,2)}})
+        #pdb.set_trace()
         self.equipment.append(self.motor)
         self.shutter = Shutter(self.equipment_configs_shutter)
         self.equipment.append(self.shutter)
@@ -771,10 +775,12 @@ class SLM_Image(HologramCreator):
                 cur_item = self.cycle_image(j, i)
                 pix = cur_item.image_as_array[j][i]
                 e_time = cur_item.map_timing[pix]
+                if e_time < 0:
+                    e_time = 0
                 powr = cur_item.map_laser_power[pix]
-                self.slm.display(cur_item.grating.grating_tk)
                 #Enter conditional if the current pixel should be exposed.
                 if not super().compare_floats(e_time, 0):
+                    self.slm.display(cur_item.grating.grating_tk)
                     self.update_progress(pix,e_time,powr,i,j)
                     #Change the laser's power if the pixel value has changed.
                     if prev_pix is not None and prev_powr is not None:
@@ -785,7 +791,7 @@ class SLM_Image(HologramCreator):
                         self.motor.move_absolute(2, i*self.delta_y*1000) 
                         on_this_row = True
                     self.motor.move_absolute(1, j*self.delta_x*1000) 
-                    self.shutter.toggle(time)
+                    self.shutter.toggle(e_time)
                     #Update previous pixel info to current pixel info
                     prev_pix = pix
                     prev_powr = powr
@@ -841,8 +847,8 @@ class SLM_Image(HologramCreator):
         super().close_ports(self.equipment)
         end = datetime.now().strftime('%H:%M:%S -- %d/%m/%Y')
         self.label_end_time.configure(text='True Experiment End Time: '+end)
-        screenshot = super().screenshot()
-        screenshot.save(self.file_experiment.replace('.txt','.png'))
+        #screenshot = super().screenshot()
+        #screenshot.save(self.file_experiment.replace('.txt','.png'))
 
 ##############################################################################
 #Open Prior Experiments

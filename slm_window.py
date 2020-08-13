@@ -23,8 +23,8 @@ class SLM_window():
         # Assign the separated digits of the string to a variable
         begin_monitor_horizontal = monitor_values[0]
         begin_monitor_vertical = monitor_values[1]
-        begin_slm_horizontal = monitor_values[7]
-        begin_slm_vertical = monitor_values[8]
+        begin_slm_horizontal = monitor_values[5]
+        begin_slm_vertical = monitor_values[6]
 
         begin_slm_horizontal, begin_slm_vertical = self.display_left_side(begin_monitor_horizontal, begin_slm_horizontal, begin_monitor_vertical, begin_slm_vertical)
 

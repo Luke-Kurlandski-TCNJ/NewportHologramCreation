@@ -1,5 +1,5 @@
 Laser Serial Port::
-COM4
+COM30
 ####################
 Laser Serial Baudrate::
 19200
