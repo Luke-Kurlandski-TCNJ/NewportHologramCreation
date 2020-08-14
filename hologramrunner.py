@@ -1,4 +1,4 @@
-♣"""
+"""
 A runner program which can run one of several GUI classes to run experiment.
 
 @author: Luke Kurlandski

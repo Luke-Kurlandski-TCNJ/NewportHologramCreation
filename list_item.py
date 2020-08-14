@@ -21,7 +21,15 @@ class ListItem():
         # print(self.image, self.grating, self.item_details)
 
     def __repr__(self):
-        return "%s %s %d" %(self.image.name_image, self.grating.configs['g_type'], self.grating.configs['g_angle'])
+        if self.grating.configs['g_type'] == 'Custom':
+            name = "%s %s %s" %(self.image.name_image, self.grating.configs['g_type'], self.grating.configs['grating_name'])
+        else:
+            name = "%s %s %d" %(self.image.name_image, self.grating.configs['g_type'], self.grating.configs['g_angle'])
+        return name
     
     def __str__ (self):
-        return "%s %s %d" %(self.image.name_image, self.grating.configs['g_type'], self.grating.configs['g_angle'])
+        if self.grating.configs['g_type'] == 'Custom':
+            name = "%s %s %s" %(self.image.name_image, self.grating.configs['g_type'], self.grating.configs['grating_name'])
+        else:
+            name = "%s %s %d" %(self.image.name_image, self.grating.configs['g_type'], self.grating.configs['g_angle'])
+        return name

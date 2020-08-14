@@ -60,10 +60,10 @@ class HologramCreator(App):
         """
 
         tk.Label(frame, text='Film Information', font="bold").pack()
-        tk.Label(frame, text='Image Width on Film (m)').pack()
+        tk.Label(frame, text='Image Width on Film (mm)').pack()
         self.entry_width = tk.Entry(frame, width = 10)
         self.entry_width.pack()
-        tk.Label(frame, text='Image Height on Film (m)').pack()
+        tk.Label(frame, text='Image Height on Film (mm)').pack()
         self.entry_height = tk.Entry(frame, width = 10)
         self.entry_height.pack()
         tk.Label(frame, text='Estimate Spot Size (\u03BCm) (opt)').pack()
@@ -138,7 +138,7 @@ class HologramCreator(App):
         self.entry_angle.grid(row=1, column=0)
 
         tk.Label(frame, text='Grating Type', font='bold').grid(row=0, column=1)
-        self.types = {'SawTooth', 'Triangle', 'Circle'}
+        self.types = {'SawTooth', 'Triangle', 'Circle', 'Custom'}
         self.type_var = tk.StringVar(frame)
         self.type_var.set('SawTooth')
         tk.OptionMenu(frame, self.type_var, *self.types).grid(row=1, column=1)
@@ -157,8 +157,13 @@ class HologramCreator(App):
 
         self.g_reverse = tk.IntVar()
         tk.Checkbutton(frame, text = 'Reverse Grating', variable = self.g_reverse).grid(row=5, column=1)
-
-
+        
+        selection_frame = tk.Frame(frame, borderwidth=2, relief=tk.SOLID, pady=4)
+        selection_frame.grid(row=6, column=0, columnspan=2)
+        tk.Label(selection_frame, text='Grating Selection', font='bold').grid(row=0, column=0)
+        self.button_image = tk.Button(selection_frame, text='Select a Grating', 
+            command=self.grating_select)
+        self.button_image.grid(row=0, column=1)
 
     def setup_exposure_details(self, frame:tk.Frame):
         """
@@ -211,6 +216,23 @@ class HologramCreator(App):
         self.text_laser.configure(width=20, height=10)
         self.text_laser.grid(row=1, column=0)
         
+    def setup_grating_details(self, frame:tk.Frame):
+        """
+        Set up the exposure textbox.
+        """
+
+        sub_frame = tk.Frame(frame)
+        sub_frame.pack()
+        tk.Label(sub_frame, text='Gratings by Color').grid(row=0, column=0)
+        text_configs = {
+            'Frame':sub_frame,
+            'y Row':1,
+            'x Row':2
+        }
+        self.text_grating_color = super().text_apply_scrollbars(self.root, text_configs)
+        self.text_grating_color.configure(width=20, height=10)
+        self.text_grating_color.grid(row=1, column=0)
+        
     def setup_image_array(self, frame:tk.Frame):
         """
         Set up the textbox that displays the image as an array.
@@ -238,10 +260,12 @@ class HologramCreator(App):
         tk.Label(sub_frame, text = "Selection Details", font='bold').grid(row=0, column=0, columnspan=2)
         self.image_name_label = tk.Label(sub_frame, text = "Image Name: ")
         self.image_name_label.grid(row=1, column=0)
+        self.grating_name_label = tk.Label(sub_frame, text = "Grating Name: ")
+        self.grating_name_label.grid(row=2, column=0)
         self.grating_type_label = tk.Label(sub_frame, text= "Grating Type: ")
-        self.grating_type_label.grid(row=2, column=0)
+        self.grating_type_label.grid(row=3, column=0)
         self.rotation_angle_label = tk.Label(sub_frame, text = "Rotation Angle: ")
-        self.rotation_angle_label.grid(row=3, column=0)
+        self.rotation_angle_label.grid(row=4, column=0)
         self.y_min_label = tk.Label(sub_frame, text = "Y min: ")
         self.y_min_label.grid(row=1, column=1)
         self.y_max_label = tk.Label(sub_frame, text = "Y max: ")
@@ -333,6 +357,56 @@ class HologramCreator(App):
         except Exception:
             raise Exception('Error: laser string is improperly formatted.')
         return map_laser_power
+    
+    def map_gratings(self, configs:dict):
+        def cycle_image( j, i):
+            if j % 2 == 0 and i % 2 == 0:
+                return 0
+            elif j % 2 == 0 and i % 2 == 1:
+                return 1
+            elif j % 2 == 1 and i % 2 == 0:
+                return 2
+            elif j % 2 == 1 and i % 2 == 1:
+                return 3
+            else:
+                return -1
+        
+        gradient_range = (configs['Gradient Range'] if 'Gradient Range' 
+            in configs else 256)
+        grating_color = (configs['Input Grating Color'] if 'Input Grating Color' 
+            in configs else [-1] * gradient_range)
+        
+        try:
+            grating_color_map = self.process_user_string(grating_color, 
+                {'Gradient Range':gradient_range})
+        except Exception:
+            raise Exception('Error: Grating by Color string is improperly formatted')
+        
+        y_after_crop = self.image.modified_PIL.height
+        x_after_crop = self.image.modified_PIL.width
+    
+        if self.item_list and len(self.item_list) > 3:
+            grating_map = np.zeros((y_after_crop,x_after_crop), dtype=np.uint16)
+            grating_map = np.transpose(grating_map)
+            
+            self.final_array = grating_map
+            
+            temp_array_list = []
+            for i,item in enumerate(self.item_list):
+                temp_array_list[i] = np.transpose(item[i].image_as_array)
+            
+            for i in range(0, y_after_crop):
+                for j in range(0, x_after_crop):
+                    grating_map[j][i] = cycle_image(j,i)
+                    current_color = temp_array_list[grating_map[j][i]][j][i]
+                    self.final_array[j][i] = current_color
+                    grating_option = grating_color_map[current_color]
+                    if grating_option != -1:
+                        grating_map[j][i]= grating_option
+                    
+            print(grating_map)
+            print(self.final_array)
+        return grating_map
 
 ##############################################################################
 #Data Display

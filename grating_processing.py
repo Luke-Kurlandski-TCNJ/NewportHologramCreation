@@ -84,6 +84,7 @@ class MyGrating:
                     index = x**2 + y**2 <= radius**2
                     grating_array[cy-radius:cy+radius, cx-radius:cx+radius][index] = color
                     radius -= 1
+                
                     
             return grating_array
 
@@ -96,15 +97,26 @@ class MyGrating:
 
             width_array = int(np.ceil( np.sqrt(pow(width, 2) + pow(height, 2))))
             height_array = width_array
-
-            self.g_array = self.generate_pattern_array(height_array, width_array, configs)
             
-            self.grating_image = Image.fromarray(self.g_array)
+            if configs['g_type'] == 'Custom':
+                try:
+                    self.grating_image = Image.open(self.file_path)
+                except:
+                    temp = np.zeros((height_array, width_array), dtype = np.uint16)
+                    self.grating_image = Image.fromarray(temp)
+                    self.grating_image = self.grating_image.convert('L')
+                    self.grating_image = self.center_crop(self.grating_image, width_array, height_array, width, height)
+                    print("Bad grating file path-%s"%self.file_path)
+            else:
+                
+                self.g_array = self.generate_pattern_array(height_array, width_array, configs)
             
-            self.grating_image = self.grating_image.convert('L')
-
-            self.grating_image = self.grating_image.rotate(configs['g_angle'])
-            self.grating_image = self.center_crop(self.grating_image, width_array, height_array, width, height)
+                self.grating_image = Image.fromarray(self.g_array)
+            
+                self.grating_image = self.grating_image.convert('L')
+                self.grating_image = self.grating_image.rotate(configs['g_angle'])
+                self.grating_image = self.center_crop(self.grating_image, width_array, height_array, width, height)
+            
             self.grating_tk = ImageTk.PhotoImage(self.grating_image)
             self.grating_preview_tk = self.get_grating_preview(self.grating_image)
 
