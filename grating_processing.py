@@ -186,6 +186,16 @@ class MyGrating:
                 self.modified_array = self.image_as_array(image)
             return image
 
-        
-
-
+        def __repr__(self):
+            if self.configs['g_type'] == 'Custom':
+                name = "%s %s" %(self.configs['g_type'], self.configs['grating_name'])
+            else:
+                name = "%s %d" %(self.configs['g_type'], self.configs['g_angle'])
+            return name
+    
+        def __str__ (self):
+            if self.configs['g_type'] == 'Custom':
+                name = "%s %s" %(self.configs['g_type'], self.configs['grating_name'])
+            else:
+                name = "%s %d" %(self.configs['g_type'], self.configs['g_angle'])
+            return name
