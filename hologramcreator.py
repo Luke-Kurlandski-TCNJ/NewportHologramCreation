@@ -60,10 +60,10 @@ class HologramCreator(App):
         """
 
         tk.Label(frame, text='Film Information', font="bold").pack()
-        tk.Label(frame, text='Image Width on Film (mm)').pack()
+        tk.Label(frame, text='Image Width on Film (m)').pack()
         self.entry_width = tk.Entry(frame, width = 10)
         self.entry_width.pack()
-        tk.Label(frame, text='Image Height on Film (mm)').pack()
+        tk.Label(frame, text='Image Height on Film (m)').pack()
         self.entry_height = tk.Entry(frame, width = 10)
         self.entry_height.pack()
         tk.Label(frame, text='Estimate Spot Size (\u03BCm) (opt)').pack()
@@ -385,27 +385,28 @@ class HologramCreator(App):
         y_after_crop = self.image.modified_PIL.height
         x_after_crop = self.image.modified_PIL.width
     
+        grating_map = np.zeros((y_after_crop,x_after_crop), dtype=np.uint16)
+        grating_map = np.transpose(grating_map)
+        
         if self.item_list and len(self.item_list) > 3:
-            grating_map = np.zeros((y_after_crop,x_after_crop), dtype=np.uint16)
-            grating_map = np.transpose(grating_map)
-            
+              
             self.final_array = grating_map
             
-            temp_array_list = []
-            for i,item in enumerate(self.item_list):
-                temp_array_list[i] = np.transpose(item[i].image_as_array)
-            
+           
             for i in range(0, y_after_crop):
                 for j in range(0, x_after_crop):
-                    grating_map[j][i] = cycle_image(j,i)
-                    current_color = temp_array_list[grating_map[j][i]][j][i]
-                    self.final_array[j][i] = current_color
+                    #grating_map[j][i] = cycle_image(j,i)
+                
+                    current_color = self.image.modified_array[j][i]
+                    #self.final_array[j][i] = current_color
                     grating_option = grating_color_map[current_color]
                     if grating_option != -1:
                         grating_map[j][i]= grating_option
+                    else:
+                        grating_map[j][i]= 0
                     
             print(grating_map)
-            print(self.final_array)
+            #print(self.final_array)
         return grating_map
 
 ##############################################################################

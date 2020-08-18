@@ -441,12 +441,12 @@ class SLM_Single_Image(HologramCreator):
         
         #Hologram width.
         try:
-            self.hologram_width = 1000 * float(self.entry_width.get().strip()) 
+            self.hologram_width = float(self.entry_width.get().strip()) 
         except ValueError as e:
             message = 'Hologram width must be a floating point.'
             raise InputError(message, e)
         try:
-            self.hologram_height =1000 * float(self.entry_height.get().strip()) 
+            self.hologram_height = float(self.entry_height.get().strip()) 
         except ValueError as e:
             message = 'Hologram height must be a floating point.'
             raise InputError(message, e)
@@ -653,6 +653,7 @@ class SLM_Single_Image(HologramCreator):
         }
         self.map_timing = super().map_timing(configs_timing)
         self.map_laser_power = super().map_laser_power(configs_laser)
+        self.grating_map = super().map_gratings(configs_grating_color)
         self.delta_x = self.hologram_width / self.pixels_x
         self.delta_y = self.hologram_height / self.pixels_y
         dpi = self.image.modified_PIL.width / (39.37 * self.hologram_width)
@@ -817,7 +818,7 @@ class SLM_Single_Image(HologramCreator):
             on_this_row = False 
             for j in range(0, x_after_crop):
                 self.check_pause_abort()
-                cur_item = self.item_list[self.grating_map(j, i)]
+                cur_item = self.item_list[self.grating_map[j, i]]
                 pix = image_as_array[j][i]
                 e_time = self.map_timing[pix]
                 powr = self.map_laser_power[pix]

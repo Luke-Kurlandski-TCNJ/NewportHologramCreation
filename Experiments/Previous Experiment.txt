@@ -1,23 +1,23 @@
 Hologram Width::
-10.0
+0.00026
 ####################
 Hologram Height::
-10.0
+0.000152
 ####################
 Spot Size::
 130.0
 ####################
 Pixels Horizontal::
-77
+2
 ####################
 Pixels Vertical::
-132
+2
 ####################
 Cropping::
 
 ####################
 Strings Exposure::
-
+[0,256]:5
 ####################
 Strings Ignore::
 
@@ -26,20 +26,22 @@ Strings Laser::
 
 ####################
 Strings Grating Color::
-[230,240]:1
-[254,255]:4
+[0,1]:0
+[113,115]:1
+[165,167]:2
+[216,218]:3
 ####################
 Image File::
-Images/Sample Image.png
+D:/Shared drives/McGee Laser Lab/Students/Jonas Strobelt/01 Data/200818_test_newImageCreator/Test Image.PNG
 ####################
 Grating File 1::
-C:/Users/Matthew_VS/Desktop/Photonics-Lab/src/SLM/Patterns_and_Tools/Grating_Images/Circle_Reverse_Grating_2.55_0Deg.png
+Images/Sample_Grating.png
 ####################
 grating_type 1::
-SawTooth
+Circle
 ####################
 rotation_angle 1::
-70
+0
 ####################
 y_min 1::
 0
@@ -54,79 +56,22 @@ reverse 1::
 0
 ####################
 Grating File 2::
-C:/Users/Matthew_VS/Desktop/Photonics-Lab/src/SLM/Patterns_and_Tools/Grating_Images/Circle_Reverse_Grating_2.55_0Deg.png
+D:/Shared drives/McGee Laser Lab/Students/Jonas Strobelt/01 Data/200818_test_newImageCreator/DOE.PNG
 ####################
 grating_type 2::
 Custom
 ####################
 Grating File 3::
-C:/Users/Matthew_VS/Desktop/Photonics-Lab/src/SLM/Patterns_and_Tools/Grating_Images/Circle_Reverse_Grating_2.55_0Deg.png
+D:/Shared drives/McGee Laser Lab/Students/Jonas Strobelt/01 Data/200818_test_newImageCreator/03_superpixel.PNG
 ####################
 grating_type 3::
-Triangle
-####################
-rotation_angle 3::
-70
-####################
-y_min 3::
-0
-####################
-y_max 3::
-128
-####################
-period 3::
-28
-####################
-reverse 3::
-0
+Custom
 ####################
 Grating File 4::
-C:/Users/Matthew_VS/Desktop/Photonics-Lab/src/SLM/Patterns_and_Tools/Grating_Images/Sawtooth_Reverse_Grating_0.98_0Deg.png
+D:/Shared drives/McGee Laser Lab/Students/Jonas Strobelt/01 Data/200818_test_newImageCreator/01_superpixel.PNG
 ####################
 grating_type 4::
 Custom
-####################
-Grating File 5::
-C:/Users/Matthew_VS/Desktop/Photonics-Lab/src/SLM/Patterns_and_Tools/Grating_Images/Sawtooth_Reverse_Grating_0.98_0Deg.png
-####################
-grating_type 5::
-SawTooth
-####################
-rotation_angle 5::
-0
-####################
-y_min 5::
-0
-####################
-y_max 5::
-128
-####################
-period 5::
-28
-####################
-reverse 5::
-0
-####################
-Grating File 6::
-C:/Users/Matthew_VS/Desktop/Photonics-Lab/src/SLM/Patterns_and_Tools/Grating_Images/Sawtooth_Reverse_Grating_0.98_0Deg.png
-####################
-grating_type 6::
-Circle
-####################
-rotation_angle 6::
-0
-####################
-y_min 6::
-0
-####################
-y_max 6::
-128
-####################
-period 6::
-28
-####################
-reverse 6::
-0
 ####################
 Motor Command Pause::
 .1
