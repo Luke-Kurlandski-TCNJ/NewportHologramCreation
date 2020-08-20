@@ -388,6 +388,8 @@ class HologramCreator(App):
         grating_map = np.zeros((y_after_crop,x_after_crop), dtype=np.uint16)
         grating_map = np.transpose(grating_map)
         
+        temp_image_array = np.transpose(self.image.modified_array)
+        
         if self.item_list and len(self.item_list) > 3:
               
             self.final_array = grating_map
@@ -397,7 +399,7 @@ class HologramCreator(App):
                 for j in range(0, x_after_crop):
                     #grating_map[j][i] = cycle_image(j,i)
                 
-                    current_color = self.image.modified_array[j][i]
+                    current_color = temp_image_array[j][i]
                     #self.final_array[j][i] = current_color
                     grating_option = grating_color_map[current_color]
                     if grating_option != -1:

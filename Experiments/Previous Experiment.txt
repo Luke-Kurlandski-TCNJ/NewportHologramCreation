@@ -1,17 +1,17 @@
 Hologram Width::
-0.00026
+0.008
 ####################
 Hologram Height::
-0.000152
+0.008
 ####################
 Spot Size::
 130.0
 ####################
 Pixels Horizontal::
-2
+62
 ####################
 Pixels Vertical::
-2
+106
 ####################
 Cropping::
 
@@ -26,51 +26,71 @@ Strings Laser::
 
 ####################
 Strings Grating Color::
-[0,1]:0
-[113,115]:1
-[165,167]:2
-[216,218]:3
+[0,2]:0
+[37,39]:1
+[63,65]:2
+[88,90]:3
+[126,128]:4
+[190,192]:5
+[216,218]:6
+[241,243]:7
+[254,256]:8
 ####################
 Image File::
-D:/Shared drives/McGee Laser Lab/Students/Jonas Strobelt/01 Data/200818_test_newImageCreator/Test Image.PNG
+D:/Shared drives/McGee Laser Lab/Students/Jonas Strobelt/01 Data/200818_SLM_LightBulb_newProg/highRes_gray_rot.png
 ####################
 Grating File 1::
-Images/Sample_Grating.png
+D:/Shared drives/McGee Laser Lab/Students/Jonas Strobelt/01 Data/200818_SLM_LightBulb_newProg/00_DOE.PNG
 ####################
 grating_type 1::
-Circle
-####################
-rotation_angle 1::
-0
-####################
-y_min 1::
-0
-####################
-y_max 1::
-128
-####################
-period 1::
-28
-####################
-reverse 1::
-0
+Custom
 ####################
 Grating File 2::
-D:/Shared drives/McGee Laser Lab/Students/Jonas Strobelt/01 Data/200818_test_newImageCreator/DOE.PNG
+D:/Shared drives/McGee Laser Lab/Students/Jonas Strobelt/01 Data/200818_SLM_LightBulb_newProg/01_x20_90deg.PNG
 ####################
 grating_type 2::
 Custom
 ####################
 Grating File 3::
-D:/Shared drives/McGee Laser Lab/Students/Jonas Strobelt/01 Data/200818_test_newImageCreator/03_superpixel.PNG
+D:/Shared drives/McGee Laser Lab/Students/Jonas Strobelt/01 Data/200818_SLM_LightBulb_newProg/02_x22_45deg.PNG
 ####################
 grating_type 3::
 Custom
 ####################
 Grating File 4::
-D:/Shared drives/McGee Laser Lab/Students/Jonas Strobelt/01 Data/200818_test_newImageCreator/01_superpixel.PNG
+D:/Shared drives/McGee Laser Lab/Students/Jonas Strobelt/01 Data/200818_SLM_LightBulb_newProg/03_x24_90deg.PNG
 ####################
 grating_type 4::
+Custom
+####################
+Grating File 5::
+D:/Shared drives/McGee Laser Lab/Students/Jonas Strobelt/01 Data/200818_SLM_LightBulb_newProg/04_x26_-45deg.PNG
+####################
+grating_type 5::
+Custom
+####################
+Grating File 6::
+D:/Shared drives/McGee Laser Lab/Students/Jonas Strobelt/01 Data/200818_SLM_LightBulb_newProg/05_x28_90deg.PNG
+####################
+grating_type 6::
+Custom
+####################
+Grating File 7::
+D:/Shared drives/McGee Laser Lab/Students/Jonas Strobelt/01 Data/200818_SLM_LightBulb_newProg/06_x30_45deg.PNG
+####################
+grating_type 7::
+Custom
+####################
+Grating File 8::
+D:/Shared drives/McGee Laser Lab/Students/Jonas Strobelt/01 Data/200818_SLM_LightBulb_newProg/07_x32_90deg.PNG
+####################
+grating_type 8::
+Custom
+####################
+Grating File 9::
+D:/Shared drives/McGee Laser Lab/Students/Jonas Strobelt/01 Data/200818_SLM_LightBulb_newProg/08_x34_-45deg.PNG
+####################
+grating_type 9::
 Custom
 ####################
 Motor Command Pause::
