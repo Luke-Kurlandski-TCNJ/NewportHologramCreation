@@ -14,7 +14,9 @@ class SLM_window():
         ### Monitor controlling 
         # Finds the resolution of all monitors that are connected.
         active_monitors = get_monitors() # "monitor(screenwidth x screenheight + startpixel x + startpixel y)"
-
+        
+        for monitor in active_monitors:
+            print(monitor)
 
 
         # Assign the separated x and y start values to variables
@@ -37,7 +39,7 @@ class SLM_window():
         
 
         # Create a window on the screen of the SLM monitor
-        self.window_slm = Toplevel(self.image_window)
+        self.window_slm = Toplevel(self.image_window, bg='blue')
         self.window_slm_geometry = str("{:}".format(width) + 'x' + "{:}".format(height) + '+' + "{:}".format(begin_slm_horizontal) + '+' + "{:}".format(begin_slm_vertical))
         
         self.window_slm.geometry(self.window_slm_geometry)
@@ -55,17 +57,16 @@ class SLM_window():
     
     def display(self,grating):
         self.window_slm_label.config(image=grating)
+        print("display")
+        
+    def change_text(self, words):
+        self.window_slm_label.config(text=words)
 
     def close_window(self):
         print("pressed")
         self.window_slm.destroy()
         self.window_slm.update()
 
-    def display_left_side(self, bmh, bsh, bmv, bsv):
-        # Reverse the monitor pixel order (because, the SLM monitor is located ón the left side of the main monitor)
-        begin_slm_horizontal = str(int(bmh) - int(bsh))
-        begin_slm_vertical = str(int(bmv) - int(bsv))
-        return (begin_slm_horizontal, begin_slm_vertical)
 
 
 

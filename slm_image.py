@@ -731,6 +731,9 @@ class SLM_Image(HologramCreator):
                 time.sleep(.25)
             x.join()
             #pdb.set_trace()
+        except:
+            print("temp except")
+        '''
         except EquipmentError as e: 
             super().error_window(e)
             super().close_ports(self.equipment)
@@ -746,7 +749,8 @@ class SLM_Image(HologramCreator):
             super().error_window(EquipmentError(message, e))
             super().close_ports(self.equipment)
             return
-        #Conduct the movement and exposure process.
+        #Conduct the movement and exposure process.'''
+        
         try:
             #Use simple threading to prevent laggy main window.
             x = threading.Thread(target=self.movement)
@@ -757,7 +761,9 @@ class SLM_Image(HologramCreator):
             x.join()
             #self.slm.close_window()
             #self.slm_thread.join()
-
+        except:
+            print("temp except")
+        '''
         except UserInterruptError as e:
             super().close_ports(self.equipment)
             super().error_window(e)
@@ -772,6 +778,7 @@ class SLM_Image(HologramCreator):
             super().error_window(UnknownError(message, e))
             return
         #Finally, perform clean up processes.
+        '''
         self.experiment_finish()
 
 ##############################################################################
@@ -831,9 +838,11 @@ class SLM_Image(HologramCreator):
                 powr = cur_item.map_laser_power[pix]
                 #Enter conditional if the current pixel should be exposed.
                 if not super().compare_floats(e_time, 0):
+                    print(cur_item)
                     self.slm.display(cur_item.grating.grating_tk)
                     self.update_progress(pix,e_time,powr,i,j)
                     #Change the laser's power if the pixel value has changed.
+                    '''
                     if prev_pix is not None and prev_powr is not None:
                         if not super().compare_floats(powr, prev_powr):
                             self.laser.change_power(powr)
@@ -843,6 +852,7 @@ class SLM_Image(HologramCreator):
                         on_this_row = True
                     self.motor.move_absolute(1, j*self.delta_x*1000) 
                     self.shutter.toggle(e_time)
+                    '''
                     #Update previous pixel info to current pixel info
                     prev_pix = pix
                     prev_powr = powr

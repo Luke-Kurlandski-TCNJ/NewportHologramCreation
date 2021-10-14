@@ -2,6 +2,9 @@
 import threading
 from slm_window import SLM_window
 import time
+from tkinter import *
+import PIL.Image, PIL.ImageTk
+import os
 
 
 from tkinter import * # Graphical User Interface (GUI) package
@@ -17,6 +20,7 @@ class SLM_Image():
         begin_button = Button(self.master, text='Begin?', command=self.run_experiment)
         begin_button.pack()
         Checkbutton(self.master, text="check").pack()
+        
 
 
     #def initialize_equipment(self):
@@ -24,7 +28,12 @@ class SLM_Image():
       #  self.slm_thread.start()
 
     def create_SLM_window(self):
-        self.slm = SLM_window(self.master)
+        img_path = os.path.join(os.getcwd(),"Images")
+        img_path = os.path.join(img_path, "150.png")
+        img = PIL.Image.open(img_path)
+        img = img.convert('L')
+        grating = PIL.ImageTk.PhotoImage(img)
+        self.slm = SLM_window(self.master,grating)
 
     def run_experiment(self):
         

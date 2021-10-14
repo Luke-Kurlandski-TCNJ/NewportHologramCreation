@@ -827,12 +827,14 @@ class SLM_Single_Image(HologramCreator):
                 
                 #Enter conditional if the current pixel should be exposed.
                 if not super().compare_floats(e_time, 0):
+                    print(cur_item)
                     self.slm.display(cur_item.grating_tk)
                     self.update_progress(pix,e_time,powr,i,j)
                     #Change the laser's power if the pixel value has changed.
                     if prev_pix is not None and prev_powr is not None:
                         if not super().compare_floats(powr, prev_powr):
                             self.laser.change_power(powr)
+                    
                     #Move motors to the correct positions and open shutter.
                     if not on_this_row:
                         self.motor.move_absolute(2, i*self.delta_y*1000) 
