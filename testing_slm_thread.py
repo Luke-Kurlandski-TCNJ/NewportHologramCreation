@@ -21,6 +21,7 @@ class SLM_Image():
         begin_button.pack()
         Checkbutton(self.master, text="check").pack()
         
+        
 
 
     #def initialize_equipment(self):
@@ -32,8 +33,13 @@ class SLM_Image():
         img_path = os.path.join(img_path, "150.png")
         img = PIL.Image.open(img_path)
         img = img.convert('L')
+       
         grating = PIL.ImageTk.PhotoImage(img)
+        label = Label(self.master, image=grating)
+        label.image = grating
+        label.pack()
         self.slm = SLM_window(self.master,grating)
+        
 
     def run_experiment(self):
         
@@ -49,7 +55,7 @@ class SLM_Image():
         for x in range(5):
             time.sleep(2)
             print(x)
-            self.slm.change_text("number:%s"%(str(x)))
+            # self.slm.change_text("number:%s"%(str(x)))
         
 
 def run():

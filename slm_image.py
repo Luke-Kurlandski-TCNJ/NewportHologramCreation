@@ -842,7 +842,7 @@ class SLM_Image(HologramCreator):
                     self.slm.display(cur_item.grating.grating_tk)
                     self.update_progress(pix,e_time,powr,i,j)
                     #Change the laser's power if the pixel value has changed.
-                    '''
+                    
                     if prev_pix is not None and prev_powr is not None:
                         if not super().compare_floats(powr, prev_powr):
                             self.laser.change_power(powr)
@@ -852,7 +852,7 @@ class SLM_Image(HologramCreator):
                         on_this_row = True
                     self.motor.move_absolute(1, j*self.delta_x*1000) 
                     self.shutter.toggle(e_time)
-                    '''
+                    
                     #Update previous pixel info to current pixel info
                     prev_pix = pix
                     prev_powr = powr

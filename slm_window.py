@@ -57,6 +57,7 @@ class SLM_window():
     
     def display(self,grating):
         self.window_slm_label.config(image=grating)
+        self.window_slm_label.image = grating
         print("display")
         
     def change_text(self, words):
